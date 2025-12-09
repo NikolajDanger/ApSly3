@@ -15,7 +15,7 @@ def set_rules_sly3(world: "Sly3World"):
   # Putting ThiefNet stuff out of logic, to make early game less slow.
   # Divides the items into 8 groups of 3. First groups requires 2 episodes
   # items to be in logic, second group requires 4, etc.
-  for i in range(1,35):
+  for i in range(1,38):
     episode_items_n = ceil(i/4)*2
     add_rule(
       world.get_location(f"ThiefNet {i:02}"),
@@ -156,14 +156,15 @@ def set_rules_sly3(world: "Sly3World"):
 
   ## A Cold Alliance
   require("A Cold Alliance - Big Air in China", ["Bentley", "Murray", "Guru", "Penelope", "Binocucom"])
+
   require("A Cold Alliance - Sharpshooter", "Panda King")
   # A Cold Alliance - Treetop Tangle
   # A Cold Alliance - Tsao Showdown
   require("A Cold Alliance - China Treasure Hunt", "Treasure Map")
 
   ## Dead Men Tell No Tales
-  # Dead Men Tell No Tales - Patch Grab
-  # Dead Men Tell No Tales - Stealth Challenge
+  require("Dead Men Tell No Tales - Patch Grab", "Disguise (Pirate)")
+  require("Dead Men Tell No Tales - Stealth Challenge", "Disguise (Pirate)")
   require("Dead Men Tell No Tales - Boat Bash", "Murray")
   require("Dead Men Tell No Tales - Last Ship Sailing", ["Bentley", "Penelope", "Grapple-Cam", "Murray", "Silent Obliteration", "Treasure Map"])
   # Dead Men Tell No Tales - Pirate Treasure Hunt

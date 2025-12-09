@@ -42,11 +42,11 @@ def create_access_rule(episode: str, n: int, options: "Sly3Options", player: int
             ["Carmelita"]
           ],
           "Dead Men Tell No Tales": [
-            [],
+            ["Disguise (Pirate)"],
             ["Bentley", "Penelope", "Grapple-Cam", "Murray", "Silent Obliteration", "Treasure Map"],
             ["Panda King", "Dimitri"]
           ]
-        }[episode][:n-2], [])
+        }[episode][:n-1], [])
         access = access and all(state.has(i, player) for i in requirements)
 
     return access
