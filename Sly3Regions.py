@@ -1,9 +1,9 @@
 import typing
 
-from BaseClasses import Region, CollectionState, Location
+from BaseClasses import Region, CollectionState
 
 from .data.Locations import location_dict
-from .data.Constants import EPISODES, CHALLENGES
+from .data.Constants import EPISODES, CHALLENGES, REQUIREMENTS
 
 if typing.TYPE_CHECKING:
   from . import Sly3World
@@ -13,40 +13,21 @@ def create_access_rule(episode: str, n: int, options: "Sly3Options", player: int
   """Returns a function that checks if the player has access to a specific region"""
   def rule(state: CollectionState):
     access = True
-    item_name = f"Progressive {episode}"
     if episode == "Honor Among Thieves":
       access = access and state.count_group("Crew", player) == 7
     else:
-      access = access and state.count(item_name, player) >= n
+      access = access and state.count(episode, player) == 1
 
       if n > 1:
-        requirements = sum({
-          "An Opera of Fear": [
-            [],
-            ["Binocucom", "Bentley"],
-            ["Carmelita", "Murray", "Ball Form", "Disguise (Venice)"]
-          ],
-          "Rumble Down Under": [
-            [],
-            ["Murray", "Guru"],
-            ["Bentley"]
-          ],
-          "Flight of Fancy": [
-            [],
-            ["Murray", "Bentley", "Guru", "Fishing Pole", "Penelope"],
-            ["Hover Pack", "Carmelita", "Binocucom"]
-          ],
-          "A Cold Alliance": [
-            ["Bentley", "Murray", "Guru", "Penelope", "Binocucom"],
-            ["Disguise (Photographer)", "Grapple-Cam", "Panda King"],
-            ["Carmelita"]
-          ],
-          "Dead Men Tell No Tales": [
-            ["Disguise (Pirate)"],
-            ["Bentley", "Penelope", "Grapple-Cam", "Murray", "Silent Obliteration", "Treasure Map"],
-            ["Panda King", "Dimitri"]
-          ]
-        }[episode][:n-1], [])
+        section_requirements = [
+          sum(
+            ep_reqs,
+            []
+          )
+          for ep_reqs
+          in REQUIREMENTS["Jobs"][episode][:n-1]
+        ]
+        requirements = list(set(sum(section_requirements, [])))
         access = access and all(state.has(i, player) for i in requirements)
 
     return access
@@ -59,12 +40,13 @@ def create_regions_sly3(world: "Sly3World"):
     menu = Region("Menu", world.player, world.multiworld)
     menu.add_locations({
       f"ThiefNet {i+1:02}": location_dict[f"ThiefNet {i+1:02}"].code
-      for i in range(37)
+      for i in range(world.options.thiefnet_locations)
     })
 
     world.multiworld.regions.append(menu)
 
     for i, episode in enumerate(EPISODES.keys()):
+      print(f"==={episode}===")
       for n in range(1,5):
         if n == 2 and episode == "Honor Among Thieves":
           break
@@ -80,6 +62,7 @@ def create_regions_sly3(world: "Sly3World"):
         })
 
         world.multiworld.regions.append(region)
+
         menu.connect(
           region,
           None,

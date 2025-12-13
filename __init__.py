@@ -106,6 +106,7 @@ class Sly3World(World):
           self.options.include_mega_jump.value = slot_data["include_mega_jump"]
           self.options.coins_minimum.value = slot_data["coins_minimum"]
           self.options.coins_maximum.value = slot_data["coins_maximum"]
+          self.options.thiefnet_locations.value = slot_data["thiefnet_locations"]
           self.options.thiefnet_minimum.value = slot_data["thiefnet_minimum"]
           self.options.thiefnet_maximum.value = slot_data["thiefnet_maximum"]
       return
@@ -155,6 +156,7 @@ class Sly3World(World):
       "include_mega_jump",
       "coins_minimum",
       "coins_maximum",
+      "thiefnet_locations",
       "thiefnet_minimum",
       "thiefnet_maximum",
     )

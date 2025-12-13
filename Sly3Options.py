@@ -69,6 +69,15 @@ class CoinsMaximum(Range):
   range_end = 1000
   default = 200
 
+class ThiefNetLocations(Range):
+  """
+  The number ThiefNet locations.
+  """
+
+  display_name = "ThiefNet Locations"
+  range_start = 0
+  range_end = 37
+  default = 25
 
 class ThiefNetCostMinimum(Range):
   """
@@ -100,6 +109,7 @@ class Sly3Options(PerGameCommonOptions):
   include_mega_jump: IncludeMegaJump
   coins_minimum: CoinsMinimum
   coins_maximum: CoinsMaximum
+  thiefnet_locations: ThiefNetLocations
   thiefnet_minimum: ThiefNetCostMinimum
   thiefnet_maximum: ThiefNetCostMaximum
 
@@ -113,6 +123,7 @@ sly3_option_groups = [
     CoinsMaximum
   ]),
   OptionGroup("Locations",[
+    ThiefNetLocations,
     ThiefNetCostMinimum,
     ThiefNetCostMaximum
   ])

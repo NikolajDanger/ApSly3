@@ -35,15 +35,14 @@ def gen_crew(world: "Sly3World") -> list[Item]:
   return crew
 
 def gen_episodes(world: "Sly3World") -> list[Item]:
-  """Generate the progressive episodes items for the item pool"""
+  """Generate the episodes items for the item pool"""
   all_episodes = [
     item_name for item_name in item_groups["Episode"]
-    for _ in range(4)
   ]
 
   # Make sure the starting episode is precollected
   starting_episode_n = world.options.starting_episode.value
-  starting_episode = f"Progressive {list(EPISODES.keys())[starting_episode_n]}"
+  starting_episode = list(EPISODES.keys())[starting_episode_n]
   all_episodes.remove(starting_episode)
   world.multiworld.push_precollected(world.create_item(starting_episode))
 

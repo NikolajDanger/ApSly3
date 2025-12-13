@@ -16,60 +16,60 @@ class Sly3Episode(IntEnum):
   Honor_Among_Thieves = 6
 
 class PowerUps(NamedTuple):
-  attack = False
-  binocucom = False
-  bombs = False
-  unknown = False
-  trigger_Bomb = False
-  fishing_pole = False
+  attack: bool = False
+  binocucom: bool = False
+  bombs: bool = False
+  unknown: bool = False
+  trigger_Bomb: bool = False
+  fishing_pole: bool = False
 
-  alarm_clock = False
-  adrenaline_burst = False
-  health_extractor = False
-  hover_pack = False
-  insanity_strike = False
-  grapple_cam = False
-  size_destabilizer = False
-  rage_bomb = False
+  alarm_clock: bool = False
+  adrenaline_burst: bool = False
+  health_extractor: bool = False
+  hover_pack: bool = False
+  insanity_strike: bool = False
+  grapple_cam: bool = False
+  size_destabilizer: bool = False
+  rage_bomb: bool = False
 
-  reduction_bomb = False
-  ball_form = False
-  berserker_charge = False
-  juggernaut_throw = False
-  guttural_roar = False
-  fists_of_flame = False
-  temporal_lock = False
-  raging_inferno_flop = False
+  reduction_bomb: bool = False
+  ball_form: bool = False
+  berserker_charge: bool = False
+  juggernaut_throw: bool = False
+  guttural_roar: bool = False
+  fists_of_flame: bool = False
+  temporal_lock: bool = False
+  raging_inferno_flop: bool = False
 
-  diablo_fire_slam = False
-  smoke_bomb = False
-  combat_dodge = False
-  paraglider = False
-  silent_obliteration = False
-  feral_pounce = False
-  mega_jump = False
-  knockout_dive = False
+  diablo_fire_slam: bool = False
+  smoke_bomb: bool = False
+  combat_dodge: bool = False
+  paraglider: bool = False
+  silent_obliteration: bool = False
+  feral_pounce: bool = False
+  mega_jump: bool = False
+  knockout_dive: bool = False
 
-  shadow_power_1 = False
-  thief_reflexes = False
-  shadow_power_2 = False
-  rocket_boots = False
-  treasure_map = False
-  shield = False
-  venice_disguise = False
-  photographer_disguise = False
+  shadow_power_1: bool = False
+  thief_reflexes: bool = False
+  shadow_power_2: bool = False
+  rocket_boots: bool = False
+  treasure_map: bool = False
+  shield: bool = False
+  venice_disguise: bool = False
+  photographer_disguise: bool = False
 
-  pirate_disguise = False
-  spin_1 = False
-  spin_2 = False
-  spin_3 = False
-  jump_1 = False
-  jump_2 = False
-  jump_3 = False
-  push_1 = False
+  pirate_disguise: bool = False
+  spin_1: bool = False
+  spin_2: bool = False
+  spin_3: bool = False
+  jump_1: bool = False
+  jump_2: bool = False
+  jump_3: bool = False
+  push_1: bool = False
 
-  push_2 = False
-  push_3 = False
+  push_2: bool = False
+  push_3: bool = False
 
 class GameInterface():
   """
@@ -204,175 +204,136 @@ class Sly3Interface(GameInterface):
     if self.in_cutscene() and pressing_x:
       self._write32(self.addresses["skip cutscene"],0)
 
+  def load_powerups(self, powerups: PowerUps):
+    booleans = list(powerups)
+    byte_list = [
+      [False]*2+booleans[0:6],
+      booleans[6:14],
+      booleans[14:22],
+      booleans[22:30],
+      booleans[30:38],
+      booleans[38:46],
+      booleans[46:48]+[False]*2,
+      [False]*8
+    ]
+    data = b''.join(
+      int(''.join(str(int(i)) for i in byte[::-1]),2).to_bytes(1,"big")
+      for byte in byte_list
+    )
+
+    self._write_bytes(self.addresses["gadgets"], data)
+
+  def read_powerups(self):
+    data = self._read_bytes(self.addresses["gadgets"], 8)
+    bits = [
+      bool(int(b))
+      for byte in data
+      for b in f"{byte:08b}"[::-1]
+    ]
+
+    relevant_bits = bits[2:48]
+    return PowerUps(*relevant_bits)
+
+  def add_coins(self, to_add: int):
+    current_amount = self._read32(self.addresses["coins"])
+    new_amount = max(current_amount + to_add,0)
+    self._write32(self.addresses["coins"],new_amount)
+
+#### TESTING ZONE ####
+
+def read_text(interf: Sly3Interface, address: int):
+  """Reads text at a specific address"""
+  text = ""
+
+  while True:
+    character = interf._read_bytes(address,2)
+
+    if character == b"\x00\x00":
+      break
+
+    text += character.decode("utf-16-le")
+
+    address += 2
+
+  return text
+
+def find_string_id(interf: Sly3Interface, _id: int):
+  """Searches for a specific string by ID"""
+
+  # String table starts at 0x47A2D8
+
+  # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
+  # address to the string
+
+  string_table_address = interf._read32(0x47A2D8)
+  i = 0
+  while True:
+    string_id = interf._read32(string_table_address+i*8)
+    if string_id == _id:
+      return interf._read32(string_table_address+i*8+4)
+    i += 1
+
+def print_thiefnet_addresses(interf: Sly3Interface):
+  print("        {")
+  for i in range(44):
+    address = 0x343208+i*0x3c
+    interf._write32(address,i+1)
+    interf._write32(address+0xC,0)
+
+    name_id = interf._read32(address+0x14)
+    name_address = find_string_id(interf, name_id)
+    name_text = read_text(interf, name_address)
+
+    description_id = interf._read32(address+0x18)
+    description_address = find_string_id(interf, description_id)
+
+    print(
+      "          " +
+      f"\"{name_text}\": "+
+      f"({hex(name_address)},{hex(description_address)}),"
+    )
+
+  print("        }")
+
+def current_job_info(interf: Sly3Interface):
+  current_job = interf._read32(0x36DB98)
+
+  address = interf._read32(interf.addresses["DAG root"])
+  i = 0
+  while address != 0:
+    job_pointer = interf._read32(address+0x6c)
+    job_id = interf._read32(job_pointer+0x18)
+    if job_id == current_job:
+      break
+
+    address = interf._read32(address+0x20)
+    i += 1
+
+  print("Job ID:", current_job)
+  print("Job address:", hex(address))
+  print("Job index:", i)
+  print("Job state (should be 2):", interf._read32(address+0x44))
+
 if __name__ == "__main__":
   interf = Sly3Interface(Logger("test"))
   interf.connect_to_game()
+  # interf.to_episode_menu()
+  # interf.unlock_episodes()
+  # interf.skip_cutscene()
 
-  byte_list = [
-    [
-      False,  # ???
-      False,  # ???
-      True,   # Sly/Bentley square attack
-      True,   # Binocucom
-      True,   # Bentley's bombs
-      False,  # ???
-      True,   # Trigger Bomb
-      True    # Fishing Pole
-    ],
-    [
-      True,   # Alarm Clock
-      True,   # Adrenaline Burst
-      True,   # Health Extractor
-      True,   # Hover Pack (Doesn't activate until you reload)
-      True,   # Insanity Strike
-      True,   # Grapple Came
-      True,   # Size Destabilizer
-      True    # Rage Bomb
-    ],
-    [
-      True,   # Reduction Bomb
-      True,   # Ball Form
-      True,   # Berskerker Charge
-      True,   # Juggernaut Throw
-      True,   # Gutteral Roar
-      True,   # Fists of Flame
-      True,   # Temporal Lock
-      True    # Raging Inferno Flop
-    ],
-    [
-      True,   # Diablo Fire Slam
-      True,   # Smoke Bomb
-      True,   # Combat Dodge
-      True,   # Paraglider
-      True,   # Silent Obliteration
-      True,   # Feral Pounce
-      True,   # Mega Jump
-      True    # Knockout Dive
-    ],
-    [
-      True,   # Shadow Power Lvl 1
-      True,   # Thief Reflexes
-      True,   # Shadow Power Lvl 2
-      True,   # Rocket Boots
-      True,   # Treasure Map
-      False,  # ???
-      True,   # Venice Disguise
-      True    # Photographer Disguise
-    ],
-    [
-      True,   # Pirate Disguise
-      True,   # Spin Attack lvl 1
-      True,   # Spin Attack lvl 2
-      True,   # Spin Attack lvl 3
-      True,   # Jump Attack lvl 1
-      True,   # Jump Attack lvl 2
-      True,   # Jump Attack lvl 3
-      True    # Push Attack lvl 1
-    ],
-    [
-      True,   # Push Attack lvl 1
-      True,   # Push Attack lvl 1
-      False,
-      False,
-      False,
-      False,
-      False,
-      False
-    ],
-    [
-      False,
-      False,
-      False,
-      False,
-      False,
-      False,
-      False,
-      False
-    ],
-  ]
+  # Loading all power-ups (except the one I don't know)
+  # power_ups = PowerUps(True, True, True, False, *[True]*44)
+  # interf.load_powerups(power_ups)
 
-  # byte_list = [[False for _ in range(8)] for _ in range(8)]
+  # Adding 10000 coins
+  # interf.add_coins(10000)
 
-  data = b''.join(
-    int(''.join(str(int(i)) for i in byte[::-1]),2).to_bytes(1,"big")
-    for byte in byte_list
-  )
+  # === Testing Zone ===
 
-  interf._write_bytes(0x468DCC,data)
+  # power_ups = PowerUps()
+  # interf.load_powerups(power_ups)
+  # print_thiefnet_addresses(interf)
 
-  # data = interf._read_bytes(0x468DCC, 8)
-  # bits = [
-  #     bool(int(b))
-  #     for byte in data
-  #     for b in f"{byte:08b}"[::-1]
-  # ]
+  # interf._write32(0x1335d10+0x44, 0)
 
-  # print(bits)
-
-  interf._write32(0x468DDC, 10000)
-
-  # thiefnet_values = list(range(9)) + list(range(10,))
-
-
-  # def read_text(address: int):
-  #   text = ""
-
-  #   while True:
-  #     character = interf._read_bytes(address,2)
-
-  #     if character == b"\x00\x00":
-  #       break
-
-  #     text += character.decode("utf-16-le")
-
-  #     address += 2
-
-  #   return text
-
-  # def find_string_id(_id: int):
-  #   string_table_address = interf._read32(0x47A2D8)
-  #   i = 0
-  #   while True:
-  #     string_id = interf._read32(string_table_address+i*8)
-  #     if string_id == _id:
-  #       return interf._read32(string_table_address+i*8+4)
-  #     i += 1
-
-
-  # print("      {")
-  # for i in range(44):
-  #   address = 0x343208+i*0x3c
-  #   interf._write32(address,i+1)
-  #   interf._write32(address+0xC,0)
-
-  #   name_id = interf._read32(address+0x14)
-  #   name_address = find_string_id(name_id)
-  #   name_text = read_text(name_address)
-
-  #   description_id = interf._read32(address+0x18)
-  #   description_address = find_string_id(description_id)
-
-  #   print(
-  #     "        " +
-  #     f"\"{name_text}\": "+
-  #     f"({hex(name_address)},{hex(description_address)}),"
-  #   )
-
-  # print("      }")
-
-  # string_table_address = interf._read32(0x47A2D8)
-  # for i in range(10):
-  #   print("----")
-  #   string_id = interf._read32(string_table_address+i*8)
-  #   print(string_id)
-  #   string_address = interf._read32(string_table_address+i*8+4)
-  #   print(hex(string_address))
-  #   print(read_text(string_address))
-
-  # print(interf._read32(0x6b4110+0x44))
-  print(interf._read32(0x1365be0+0x44))
-  print()
-  print(interf._read32(0x1357f80+0x44))
-  print(interf._read32(0x1350560+0x44))
-  print(interf._read32(0x135aba0+0x44))
-  print(interf._read32(0x36DB98))
+  # current_job_info(interf)

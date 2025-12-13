@@ -70,16 +70,16 @@ crew_list = [
   ("Carmelita",                 ItemClassification.progression, "Crew")
 ]
 
-progressive_episode_list = [
-  (f"Progressive {e}",          ItemClassification.progression, "Episode")
-  for e in list(EPISODES.keys())[:-1]
+episode_list = [
+  (episode,                     ItemClassification.progression, "Episode")
+  for episode in list(EPISODES.keys())[:-1]
 ]
 
 item_list = (
   filler_list +
   powerup_list +
   crew_list +
-  progressive_episode_list
+  episode_list
 )
 
 base_code = 5318008

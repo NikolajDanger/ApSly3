@@ -203,6 +203,178 @@ CHALLENGES = {
   ]
 }
 
+# Jobs/Challenges -> episode -> section -> job
+#            dict[      list[      list[  list[]]]]
+REQUIREMENTS = {
+  "Jobs": {
+    "An Opera of Fear": [
+      [[]],
+      [
+        ["Binocucom"],
+        [],
+        ["Bentley"],
+      ],
+      [
+        ["Carmelita"],
+        ["Murray", "Ball Form"],
+        [],
+        ["Disguise (Venice)"],
+      ],
+      [
+        ["Bombs"]
+      ]
+    ],
+    "Rumble Down Under" :[
+      [[]],
+      [
+        ["Murray"],
+        [],
+        [],
+        ["Guru"],
+      ],
+      [
+        [],
+        ["Bentley"],
+        []
+      ],
+      [[]]
+    ],
+    "Flight of Fancy": [
+      [[]],
+      [
+        ["Murray", "Bentley", "Guru", "Fishing Pole"],
+        ["Murray"],
+        ["Penelope"],
+        ["Murray", "Bentley", "Guru", "Fishing Pole", "Penelope"]
+      ],
+      [
+        ["Binocucom"],
+        ["Hover Pack"],
+        ["Carmelita"]
+      ],
+      [
+        ["Paraglider"]
+      ]
+    ],
+    "A Cold Alliance": [
+      [
+        ["Bentley", "Murray", "Guru", "Penelope", "Binocucom"]
+      ],
+      [
+        ["Disguise (Photographer)"],
+        ["Panda King"],
+        ["Grapple-Cam"],
+        ["Disguise (Photographer)", "Panda King", "Grapple-Cam"]
+      ],
+      [
+        [],
+        [],
+        ["Carmelita"]
+      ],
+      [[]]
+    ],
+    "Dead Men Tell No Tales": [
+      [
+        ["Disguise (Pirate)"]
+      ],
+      [
+        ["Bentley", "Penelope", "Grapple-Cam"],
+        ["Murray"],
+        ["Bentley", "Penelope", "Grapple-Cam", "Murray", "Silent Obliteration", "Treasure Map"]
+      ],
+      [
+        ["Panda King"],
+        ["Dimitri"],
+        []
+      ],
+      [
+        ["Guru"]
+      ]
+    ],
+  },
+  "Challenges": {
+    "An Opera of Fear": [
+      [],
+      [
+        ["Bentley"]
+      ],
+      [
+        ["Murray", "Ball Form"],
+        [],
+        []
+      ],
+      [
+        ["Bombs"],
+        [],
+        [],
+        ["Treasure Map"]
+      ]
+    ],
+    "Rumble Down Under" :[
+      [[]],
+      [
+        [],
+        [],
+        [],
+        ["Guru"]
+      ],
+      [
+        [],
+        ["Bentley"],
+        []
+      ],
+      [
+        [],
+        ["Treasure Map"]
+      ]
+    ],
+    "Flight of Fancy": [
+      [[]],
+      [
+        ["Penelope"],
+        ["Penelope"],
+        ["Penelope"],
+        ["Murray", "Bentley", "Guru", "Fishing Pole", "Penelope"],
+      ],
+      [
+        [],
+        ["Carmelita"]
+      ],
+      [
+        ["Paraglider"],
+        ["Treasure Map"]
+      ]
+    ],
+    "A Cold Alliance": [
+      [
+        ["Bentley", "Murray", "Guru", "Penelope", "Binocucom"]
+      ],
+      [
+        ["Panda King"],
+        [],
+        [],
+        []
+      ],
+      [],
+      [
+        ["Treasure Map"]
+      ]
+    ],
+    "Dead Men Tell No Tales": [
+      [
+        ["Disguise (Pirate)"],
+        ["Disguise (Pirate)"]
+      ],
+      [
+        ["Murray"],
+        ["Bentley", "Penelope", "Grapple-Cam", "Murray", "Silent Obliteration", "Treasure Map"]
+      ],
+      [],
+      [[]]
+    ],
+  }
+}
+
 ADDRESSES = {
   "SCUS-97464" : {
     "map id": 0x47989C,
@@ -213,6 +385,9 @@ ADDRESSES = {
     "frame counter": 0x389BE0,
     "x pressed": 0x36E78E,
     "skip cutscene": 0x389C20,
+    "gadgets": 0x468DCC,
+    "coins": 0x468DDC,
+    "DAG root": 0x478C8C,
     "jobs": [
       [
         [0x1335d10]
@@ -227,7 +402,52 @@ ADDRESSES = {
     ],
     "text": {
       "powerups": [
-        {},
+        {
+          "Trigger Bomb": (0x58db60,0x58dcf0),
+          "Fishing Pole": (0x595da0,0x595fc0),
+          "Alarm Clock": (0x591db0,0x591f40),
+          "Adrenaline Burst": (0x58e800,0x58e9c0),
+          "Health Extractor": (0x58ebe0,0x58ee00),
+          "Hover Pack": (0x58ef90,0x58f1b0),
+          "Insanity Strike": (0x593a40,0x593b70),
+          "Grapple-Cam": (0x5957d0,0x595ae0),
+          "Size Destabilizer": (0x58df70,0x58e170),
+          "Rage Bomb": (0x594160,0x5942d0),
+          "Reduction Bomb": (0x58f260,0x58f390),
+          "Be The Ball": (0x5955c0,0x595730),
+          "Berserker Charge": (0x5912d0,0x591380),
+          "Juggernaut Throw": (0x590730,0x590850),
+          "Guttural Roar": (0x5914e0,0x591610),
+          "Fists of Flame": (0x58f960,0x5900b0),
+          "Temporal Lock": (0x58f440,0x58f5a0),
+          "Raging Inferno Flop": (0x5916c0,0x5917f0),
+          "Diablo Fire Slam": (0x590fa0,0x591090),
+          "Smoke Bomb": (0x5918f0,0x591a00),
+          "Combat Dodge": (0x591b40,0x591c90),
+          "Paraglide": (0x5921f0,0x5924c0),
+          "Silent Obliteration": (0x592690,0x592870),
+          "Feral Pounce": (0x592c50,0x592de0),
+          "Mega Jump": (0x592fc0,0x593180),
+          "Knockout Dive": (0x5936d0,0x5938e0),
+          "Shadow Power Level 1": (0x594770,0x594880),
+          "Thief Reflexes": (0x592a10,0x592b50),
+          "Shadow Power Level 2": (0x5949e0,0x594d00),
+          "Rocket Boots": (0x577060,0x577300),
+          "Treasure Map": (0x576af0,0x576dc0),
+          "ENGLISHpowerup_shield_name": (0x596280,0x576450),
+          "Venice Disguise": (0x577510,0x577670),
+          "Photographer Disguise": (0x5778f0,0x577ac0),
+          "Pirate Disguise": (0x577ca0,0x577e20),
+          "Spin Attack Level 1": (0x577fe0,0x5781b0),
+          "Spin Attack Level 2": (0x578350,0x578500),
+          "Spin Attack Level 3": (0x578770,0x578af0),
+          "Jump Attack Level 1": (0x578d80,0x579070),
+          "Jump Attack Level 2": (0x579390,0x579620),
+          "Jump Attack Level 3": (0x5797b0,0x579950),
+          "Push Attack Level 1": (0x579ae0,0x579d70),
+          "Push Attack Level 2": (0x579f70,0x57a1f0),
+          "Push Attack Level 3": (0x57a670,0x57a940),
+        },
         {},
         {
           "Trigger Bomb": (0x592c40,0x592e00),
