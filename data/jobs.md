@@ -1,0 +1,122 @@
+# Opera of Fear
+
+## Police HQ (sly)
+Job ID: 2085
+Job address: 0x1335d10
+Job index: 2
+Job state (should be 2): 2
+
+## Octavio Snap (sly)
+Job ID: 2230
+Job address: 0x1350560
+Job index: 54
+Job state (should be 2): 2
+
+## Into the Depths (sly)
+Job ID: 2283
+Job address: 0x1357f80
+Job index: 68
+Job state (should be 2): 2
+
+## Canal Chase (bentley)
+Job ID: 2329
+Job address: 0x844ff0
+Job index: 87
+Job state (should be 2): 2
+
+## Turf War! (sly)
+Job ID: 2139
+Job address: 0x1330c40
+Job index: 19
+Job state (should be 2): 2
+
+## Tar Ball (bentley)
+Job ID: 2168
+Job address: 0x1335dc0
+Job index: 29
+Job state (should be 2): 2
+
+## Run 'n Bomb (sly)
+Job ID: 2187
+Job address: 0x133e9b0
+Job index: 39
+Job state (should be 2): 2
+
+## Guard Duty (sly)
+Job ID: 2352
+Job address: 0x1351520
+Job index: 95
+Job state (should be 2): 2
+
+## Operation: Tar-Be Gone! (sly)
+Job ID: 2419
+Job address: 0x135e550
+Job index: 120
+Job state (should be 2): 2
+
+# Rumble Down Under
+
+## Search for the Guru
+Job ID: 2577
+Job address: 0x6b4250
+Job index: 3
+Job state (should be 2): 2
+
+
+## Spelunking (Murray)
+Job ID: 2596
+Job address: 0x6b80f0
+Job index: 14
+Job state (should be 2): 2
+
+## Dark Caves (sly)
+Job ID: 2805
+Job address: 0x6d0770
+Job index: 84
+Job state (should be 2): 2
+
+## Big Truck (murray)
+Job ID: 2695
+Job address: 0x5d26f0
+Job index: 59
+Job state (should be 2): 2
+
+## Unleash the Guru (bentley)
+Job ID: 2663
+Job address: 0x6bdaf0
+Job index: 42
+Job state (should be 2): 2
+
+## Hungry Croc (murray)
+Job ID: 2780
+Job address: 0x6ca940
+Job index: 80
+Job state (should be 2): 2
+
+
+## The Claw (sly)
+Job ID: 2623
+Job address: 0x5caa20
+Job index: 25
+Job state (should be 2): 2
+
+## Lemon Rage (sly)
+Job ID: 2730
+Job address: 0x5fe390
+Job index: 72
+Job state (should be 2): 2
+
+
+## Operation: Moon Crash (sly)
+(during mission)
+Job ID: 2843
+Job address: 0x6d4330
+Job index: 102
+Job state (should be 2): 2
+
+or
+(carmelita fight)
+Job ID: 2843
+Job address: 0x5deb20
+Job index: 102
+Job state (should be 2): 2
