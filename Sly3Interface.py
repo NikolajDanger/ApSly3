@@ -317,23 +317,22 @@ def current_job_info(interf: Sly3Interface):
 if __name__ == "__main__":
   interf = Sly3Interface(Logger("test"))
   interf.connect_to_game()
-  # interf.to_episode_menu()
-  # interf.unlock_episodes()
+  #interf.to_episode_menu()
+  #interf.unlock_episodes()
   # interf.skip_cutscene()
 
   # Loading all power-ups (except the one I don't know)
-  # power_ups = PowerUps(True, True, True, False, *[True]*44)
-  # interf.load_powerups(power_ups)
+  power_ups = PowerUps(True, True, True, False, *[True]*44)
+  interf.load_powerups(power_ups)
 
   # Adding 10000 coins
-  # interf.add_coins(10000)
+  #interf.add_coins(10000)
 
   # === Testing Zone ===
 
-  # power_ups = PowerUps()
-  # interf.load_powerups(power_ups)
-  # print_thiefnet_addresses(interf)
+ # print_thiefnet_addresses(interf)
 
+  # disabling first job of episode 1 (0 = disabled, 1 = available, 2 = in progress, 3 = complete)
   # interf._write32(0x1335d10+0x44, 0)
 
-  # current_job_info(interf)
+  current_job_info(interf)
