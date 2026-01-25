@@ -87,12 +87,6 @@ Job address: 0x6bdaf0
 Job index: 42
 Job state (should be 2): 2
 
-## Hungry Croc (murray)
-Job ID: 2780
-Job address: 0x6ca940
-Job index: 80
-Job state (should be 2): 2
-
 
 ## The Claw (sly)
 Job ID: 2623
@@ -104,6 +98,12 @@ Job state (should be 2): 2
 Job ID: 2730
 Job address: 0x5fe390
 Job index: 72
+Job state (should be 2): 2
+
+## Hungry Croc (murray)
+Job ID: 2780
+Job address: 0x6ca940
+Job index: 80
 Job state (should be 2): 2
 
 
@@ -120,3 +120,64 @@ Job ID: 2843
 Job address: 0x5deb20
 Job index: 102
 Job state (should be 2): 2
+
+
+# Flight of Fancy
+
+## Hidden Flight Roster
+Job ID: 2983
+Job address: 0x794360
+Job index: 1
+Job state (should be 2): 2
+
+## Frame Team Belgium
+Job ID: 3025
+Job address: 0x7a0c20
+Job index: 15
+Job state (should be 2): 2
+
+## Frame Team Iceland
+Job ID: 3061
+Job address: 0x65f3d0
+Job index: 29
+Job state (should be 2): 2
+
+
+## Cooper Hangar Defense (murray)
+Job ID: 3101
+Job address: 0x663d80
+Job index: 49
+Job state (should be 2): 2
+
+
+## ACES Semifinals (sly)
+Job ID: 3140
+Job address: 0xecb450
+Job index: 62
+Job state (should be 2): 2
+
+
+## Beauty and the Beast (bentley)
+Job ID: 3225
+Job address: 0x7adf50
+Job index: 95
+Job state (should be 2): 2
+
+## Giant Wolf Massacre (bentley)
+Job ID: 3202
+Job address: 0x642a90
+Job index: 87
+Job state (should be 2): 2
+
+## Windmill Firewall (bentley)
+Job ID: 3164
+Job address: 0x63b4d0
+Job index: 70
+Job state (should be 2): 2
+
+## Operation: Turbo Dominant Eagle (sly)
+Job ID: 3259
+Job address: 0x651eb0
+Job index: 108
+Job state (should be 2): 2
+
