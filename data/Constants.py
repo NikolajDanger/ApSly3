@@ -377,8 +377,10 @@ REQUIREMENTS = {
 
 ADDRESSES = {
   "SCUS-97464" : {
+    "world id": 0x468D30,
     "map id": 0x47989C,
     "job id": 0x36DB98,
+    "loading": 0x467B00,
     "reload": 0x4797C4,
     "reload values": 0x4797CC,
     "episode unlocks": 0x56AEC8,

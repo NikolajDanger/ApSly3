@@ -164,6 +164,7 @@ class Sly3World(World):
   def fill_slot_data(self) -> Mapping[str, Any]:
     slot_data = self.get_options_as_dict()
     slot_data["thiefnet_costs"] = self.thiefnet_costs
+    slot_data["world_version"] = self.world_version
 
     return slot_data
 

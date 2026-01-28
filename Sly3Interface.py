@@ -2,6 +2,7 @@ from typing import Optional, Dict, NamedTuple
 import struct
 from logging import Logger
 from enum import IntEnum
+import traceback
 
 from .pcsx2_interface.pine import Pine
 from .data.Constants import ADDRESSES, MENU_RETURN_DATA
@@ -100,6 +101,15 @@ class GameInterface():
   def _read_float(self, address: int):
     return struct.unpack("f",self.pcsx2_interface.read_bytes(address, 4))[0]
 
+  def _batch_read8(self, addresses: list[int]) -> list[int]:
+    return self.pcsx2_interface.batch_read_int8(addresses)
+
+  def _batch_read16(self, addresses: list[int]) -> list[int]:
+    return self.pcsx2_interface.batch_read_int16(addresses)
+
+  def _batch_read32(self, addresses: list[int]) -> list[int]:
+    return self.pcsx2_interface.batch_read_int32(addresses)
+
   def _write8(self, address: int, value: int):
     self.pcsx2_interface.write_int8(address, value)
 
@@ -113,7 +123,7 @@ class GameInterface():
     self.pcsx2_interface.write_bytes(address, value)
 
   def _write_float(self, address: int, value: float):
-    self.pcsx2_interface.write_bytes(address, struct.pack("f", value))
+    self.pcsx2_interface.write_float(address, value)
 
   def connect_to_game(self):
     """
@@ -129,6 +139,10 @@ class GameInterface():
       game_id = self.pcsx2_interface.get_game_id()
       # The first read of the address will be null if the client is faster than the emulator
       self.current_game = None
+      if game_id == "":
+        self.logger.debug("No game connected")
+        return
+
       if game_id in ADDRESSES.keys():
         self.current_game = game_id
         self.addresses = ADDRESSES[game_id]
@@ -137,9 +151,9 @@ class GameInterface():
           f"Connected to the wrong game ({game_id})")
         self.game_id_error = game_id
     except RuntimeError:
-      pass
+      self.logger.debug(traceback.format_exc())
     except ConnectionError:
-      pass
+      self.logger.debug(traceback.format_exc())
 
   def disconnect_from_game(self):
     self.pcsx2_interface.disconnect()
@@ -154,6 +168,9 @@ class GameInterface():
       return False
 
 class Sly3Interface(GameInterface):
+  ############################
+  ## Private Helper Methods ##
+  ############################
   def _reload(self, reload_data: bytes):
     self._write_bytes(
       self.addresses["reload values"],
@@ -168,6 +185,23 @@ class Sly3Interface(GameInterface):
 
     return pointer
 
+  ###################
+  ## Current State ##
+  ###################
+  def in_cutscene(self) -> bool:
+    frame_counter = self._read16(self.addresses["frame counter"])
+    return frame_counter > 10
+
+  def is_loading(self) -> bool:
+    return self._read32(self.addresses["loading"]) == 2
+
+  #######################
+  ## Getters & Setters ##
+  #######################
+  def get_current_episode(self) -> Sly3Episode:
+    episode_num = self._read32(self.addresses["world id"])
+    return Sly3Episode(episode_num)
+
   def get_current_map(self) -> int:
     return self._read32(self.addresses["map id"])
 
@@ -180,31 +214,7 @@ class Sly3Interface(GameInterface):
   def set_items_received(self, n:int) -> None:
     self._write32(self.addresses["items received"], n)
 
-  def to_episode_menu(self) -> None:
-    self.logger.info("Skipping to episode menu")
-    if (
-      self.get_current_map() == 35 and
-      self.get_current_job() == 1797
-    ):
-      self.set_current_job(0xffffffff)
-      # self.set_items_received(0)
-
-    self._reload(bytes.fromhex(MENU_RETURN_DATA))
-
-  def unlock_episodes(self) -> None:
-    self._write8(self.addresses["episode unlocks"], 8)
-
-  def in_cutscene(self) -> bool:
-    frame_counter = self._read16(self.addresses["frame counter"])
-    return frame_counter > 10
-
-  def skip_cutscene(self) -> None:
-    pressing_x = self._read8(self.addresses["x pressed"]) == 255
-
-    if self.in_cutscene() and pressing_x:
-      self._write32(self.addresses["skip cutscene"],0)
-
-  def load_powerups(self, powerups: PowerUps):
+  def set_powerups(self, powerups: PowerUps):
     booleans = list(powerups)
     byte_list = [
       [False]*2+booleans[0:6],
@@ -223,7 +233,7 @@ class Sly3Interface(GameInterface):
 
     self._write_bytes(self.addresses["gadgets"], data)
 
-  def read_powerups(self):
+  def get_powerups(self):
     data = self._read_bytes(self.addresses["gadgets"], 8)
     bits = [
       bool(int(b))
@@ -233,6 +243,29 @@ class Sly3Interface(GameInterface):
 
     relevant_bits = bits[2:48]
     return PowerUps(*relevant_bits)
+
+  #################
+  ## Other Utils ##
+  #################
+  def to_episode_menu(self) -> None:
+    self.logger.info("Skipping to episode menu")
+    if (
+      self.get_current_map() == 35 and
+      self.get_current_job() == 1797
+    ):
+      self.set_current_job(0xffffffff)
+      # self.set_items_received(0)
+
+    self._reload(bytes.fromhex(MENU_RETURN_DATA))
+
+  def unlock_episodes(self) -> None:
+    self._write8(self.addresses["episode unlocks"], 8)
+
+  def skip_cutscene(self) -> None:
+    pressing_x = self._read8(self.addresses["x pressed"]) == 255
+
+    if self.in_cutscene() and pressing_x:
+      self._write32(self.addresses["skip cutscene"],0)
 
   def add_coins(self, to_add: int):
     current_amount = self._read32(self.addresses["coins"])
@@ -323,7 +356,7 @@ if __name__ == "__main__":
 
   # Loading all power-ups (except the one I don't know)
   power_ups = PowerUps(True, True, True, False, *[True]*44)
-  interf.load_powerups(power_ups)
+  interf.set_powerups(power_ups)
 
   # Adding 10000 coins
   #interf.add_coins(10000)
