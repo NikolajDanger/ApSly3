@@ -181,3 +181,12 @@ Job address: 0x651eb0
 Job index: 108
 Job state (should be 2): 2
 
+
+# A Cold Alliance
+
+##
+Job ID: 3381
+Job address: 0x67de40
+Job index: 1
+Job state (should be 2): 2
+
