@@ -190,3 +190,55 @@ Job address: 0x67de40
 Job index: 1
 Job state (should be 2): 2
 
+## Grapple-Cam Break-in (sly)
+Job ID: 3540
+Job address: 0x1625780
+Job index: 63
+Job state (should be 2): 2
+
+
+## Get a Job (bentley)
+Job ID: 3449
+Job address: 0x682ba0
+Job index: 36
+Job state (should be 2): 2
+
+
+## Tearful Reunion (murray)
+Job ID: 3509
+Job address: 0x16200f0
+Job index: 52
+Job state (should be 2): 2
+
+## Laptop Retrieval (bentley)
+Job ID: 3584
+Job address: 0x68e560
+Job index: 82
+Job state (should be 2): 2
+
+
+## Down the Line (murray)
+Job ID: 3672
+Job address: 0x16377e0
+Job index: 117
+Job state (should be 2): 2
+
+
+## Vampiric Demise (sly)
+Job ID: 3629
+Job address: 0x1630060
+Job index: 97
+Job state (should be 2): 2
+
+
+## A Battery of Peril (bentley)
+Job ID: 3684
+Job address: 0x163a930
+Job index: 121
+Job state (should be 2): 2
+
+## Operation: Wedding Crasher! (sly)
+Job ID: 3712
+Job address: 0x6bf580
+Job index: 129
+Job state (should be 2): 2
