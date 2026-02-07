@@ -242,3 +242,55 @@ Job ID: 3712
 Job address: 0x6bf580
 Job index: 129
 Job state (should be 2): 2
+
+
+# Dead Men Tell No Tales
+
+## The Talk of Pirates (sly)
+Job ID: 3848
+Job address: 0x7672e0
+Job index: 3
+Job state (should be 2): 2
+
+## Dynamic Duo (bentley)
+Job ID: 3907
+Job address: 0x7743d0
+Job index: 25
+Job state (should be 2): 2
+
+## Jollyboat of Destruction (murray)
+Job ID: 4038
+Job address: 0x78d440
+Job index: 78
+Job state (should be 2): 2
+
+## X Marks the Spot (sly)
+Job ID: 3991
+Job address: 0x788780
+Job index: 59
+Job state (should be 2): 2
+
+## Deep Sea Danger (sly)
+Job ID: 4101
+Job address: 0x6e52c0
+Job index: 110
+Job state (should be 2): 2
+
+## Battle on the High Seas (sly)
+Job ID: 4120
+Job address: 0x60fa80
+Job index: 116
+Job state (should be 2): 2
+
+## Crusher from the Depths (sly)
+Job ID: 4071
+Job address: 0x602a30
+Job index: 98
+Job state (should be 2): 2
+
+## Operation: Reverse Double-Cross
+Job ID: 4145
+Job address: 0x7825e0
+Job index: 129
+Job state (should be 2): 2
+
