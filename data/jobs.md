@@ -294,3 +294,61 @@ Job address: 0x7825e0
 Job index: 129
 Job state (should be 2): 2
 
+# Honor Among Thieves
+
+## Carmelita part
+
+Job ID: 4327
+Job address: 0x148c000
+Job index: 28
+Job state (should be 2): 2
+
+## Guru part
+
+Job ID: 4369
+Job address: 0x14967c0
+Job index: 31
+Job state (should be 2): 2
+
+## Dimitri part
+
+Job ID: 4396
+Job address: 0xbb3330
+Job index: 44
+Job state (should be 2): 2
+
+## Penelope part
+
+Job ID: 4412
+Job address: 0x13dded0
+Job index: 50
+Job state (should be 2): 2
+
+## Sly plane part
+
+Job ID: 4436
+Job address: 0x13e4f40
+Job index: 58
+Job state (should be 2): 2
+
+## Sly Cooper vault part
+
+Job ID: 4479
+Job address: 0xabf4e0
+Job index: 84
+Job state (should be 2): 2
+
+## Murray and Bentley part
+
+Job ID: 4505
+Job address: 0x63c930
+Job index: 98
+Job state (should be 2): 2
+
+## Sly boss fight part (Doctor M fight)
+
+Job ID: 4544
+Job address: 0xd229b0
+Job index: 110
+Job state (should be 2): 2
+
