@@ -13,6 +13,9 @@ from dataclasses import dataclass
 class StartingEpisode(Choice):
   """
   Select Which episode to start with.
+
+  A Cold Alliance and Dead Men Tell No Tales require starting items, so
+  starting with them will break a solo game.
   """
 
   display_name = "Starting Episode"
@@ -36,6 +39,21 @@ class Goal(Choice):
   option_Dr_M = 5
   option_All_Bosses = 6
   default = 5
+
+class BonusCrewMember(Choice):
+  """
+  Which crew member, in addition to Sly, you start with.
+  """
+  display_name = "Bonus Crew Member"
+  option_None = 0
+  option_Bentley = 1
+  option_Murray = 2
+  option_Guru = 3
+  option_Penelope = 4
+  option_Panda_King = 5
+  option_Dimitri = 6
+  option_Carmelita = 7
+  default = 1
 
 
 class IncludeMegaJump(Toggle):
@@ -77,7 +95,7 @@ class ThiefNetLocations(Range):
   display_name = "ThiefNet Locations"
   range_start = 0
   range_end = 37
-  default = 25
+  default = 20
 
 class ThiefNetCostMinimum(Range):
   """
@@ -112,12 +130,14 @@ class Sly3Options(PerGameCommonOptions):
   thiefnet_locations: ThiefNetLocations
   thiefnet_minimum: ThiefNetCostMinimum
   thiefnet_maximum: ThiefNetCostMaximum
+  bonus_crew_member: BonusCrewMember
 
 sly3_option_groups = [
   OptionGroup("Goal",[
     Goal
   ]),
   OptionGroup("Items",[
+    BonusCrewMember,
     IncludeMegaJump,
     CoinsMinimum,
     CoinsMaximum

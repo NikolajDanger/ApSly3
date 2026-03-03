@@ -46,7 +46,6 @@ def create_regions_sly3(world: "Sly3World"):
     world.multiworld.regions.append(menu)
 
     for i, episode in enumerate(EPISODES.keys()):
-      print(f"==={episode}===")
       for n in range(1,5):
         if n == 2 and episode == "Honor Among Thieves":
           break

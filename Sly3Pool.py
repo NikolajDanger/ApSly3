@@ -28,11 +28,23 @@ def gen_powerups(world: "Sly3World") -> list[Item]:
 
 def gen_crew(world: "Sly3World") -> list[Item]:
   """Generate the crew for the item pool"""
-  crew = []
-  for item_name in item_groups["Crew"]:
-    crew.append(world.create_item(item_name))
+  crew = list(item_groups["Crew"])
 
-  return crew
+  bonus_crew_n = world.options.bonus_crew_member.value
+  if bonus_crew_n != 0:
+    bonus_crew = [
+      "Bentley",
+      "Murray",
+      "Guru",
+      "Penelope",
+      "Panda King",
+      "Dimitri",
+      "Carmelita"
+    ][bonus_crew_n-1]
+    crew.remove(bonus_crew)
+    world.multiworld.push_precollected(world.create_item(bonus_crew))
+
+  return [world.create_item(c) for c in crew]
 
 def gen_episodes(world: "Sly3World") -> list[Item]:
   """Generate the episodes items for the item pool"""

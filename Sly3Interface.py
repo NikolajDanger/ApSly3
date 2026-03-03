@@ -195,6 +195,30 @@ class Sly3Interface(GameInterface):
   def is_loading(self) -> bool:
     return self._read32(self.addresses["loading"]) == 2
 
+  def in_safehouse(self) -> bool:
+    # TODO
+    return False
+
+  def in_hub(self) -> bool:
+    # TODO
+    return False
+
+  def is_goaled(self) -> bool:
+    # TODO
+    return False
+
+  def is_game_started(self) -> bool:
+    # TODO
+    return False
+
+  def showing_infobox(self) -> bool:
+    # TODO
+    return False
+
+  def alive(self) -> bool:
+    # TODO
+    return False
+
   #######################
   ## Getters & Setters ##
   #######################
@@ -244,6 +268,26 @@ class Sly3Interface(GameInterface):
     relevant_bits = bits[2:48]
     return PowerUps(*relevant_bits)
 
+  def activate_jobs(self, job_ids: int|list[int]):
+    # TODO
+    pass
+
+  def deactivate_jobs(self, job_ids: int|list[int]):
+    # TODO
+    pass
+
+  def jobs_completed(self, job_ids: int|list[int]):
+    # TODO
+    pass
+
+  def current_infobox(self) -> int:
+    # TODO
+    pass
+
+  def get_damage_type(self) -> int:
+    # TODO
+    pass
+
   #################
   ## Other Utils ##
   #################
@@ -271,6 +315,18 @@ class Sly3Interface(GameInterface):
     current_amount = self._read32(self.addresses["coins"])
     new_amount = max(current_amount + to_add,0)
     self._write32(self.addresses["coins"],new_amount)
+
+  def disable_infobox(self):
+    # TODO
+    pass
+
+  def set_infobox(self):
+    # TODO
+    pass
+
+  def kill_player(self):
+    # TODO
+    pass
 
 #### TESTING ZONE ####
 

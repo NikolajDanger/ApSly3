@@ -59,9 +59,9 @@ class Sly3Context(CommonContext): # type: ignore[misc]
   is_connected_to_server: bool = False
   slot_data: Optional[Dict[str, Utils.Any]] = None
   last_error_message: Optional[str] = None
-  # notification_queue: list[str] = []
-  # notification_timestamp: float = 0
-  # showing_notification: bool = False
+  notification_queue: list[str] = []
+  notification_timestamp: float = 0
+  showing_notification: bool = False
   deathlink_timestamp: float = 0
   death_link_enabled = False
   queued_deaths: int = 0
@@ -71,10 +71,11 @@ class Sly3Context(CommonContext): # type: ignore[misc]
   in_safehouse: bool = False
   in_hub: bool = False
   current_map: Optional[int] = None
+  current_job: Optional[int] = None
 
   # Items and checks
   inventory: Dict[int,int] = {l.code: 0 for l in Items.item_dict.values()}
-  available_episodes: Dict[Sly3Episode,int] = {e: 0 for e in Sly3Episode}
+  available_episodes: Dict[Sly3Episode,bool] = {e: False for e in Sly3Episode}
   thiefnet_items: Optional[list[str]] = None
   powerups: PowerUps = PowerUps()
   thiefnet_purchases: PowerUps = PowerUps()
@@ -93,6 +94,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
     self.game_interface = Sly3Interface(logger)
 
   def on_deathlink(self, data: Utils.Dict[str, Utils.Any]) -> None:
+    # TODO
     pass
 
   def make_gui(self):
@@ -139,6 +141,10 @@ class Sly3Context(CommonContext): # type: ignore[misc]
         ]
       }]))
 
+  def notification(self):
+    # TODO
+    pass
+
 def update_connection_status(ctx: Sly3Context, status: bool):
   if ctx.is_connected_to_game == status:
     return
@@ -158,6 +164,8 @@ async def _handle_game_not_ready(ctx: Sly3Context):
 
 async def _handle_game_ready(ctx: Sly3Context) -> None:
   current_map = ctx.game_interface.get_current_map()
+  ctx.in_hub = ctx.game_interface.in_hub()
+  ctx.current_job = ctx.game_interface.get_current_job()
 
   ctx.game_interface.skip_cutscene()
 
@@ -175,9 +183,9 @@ async def _handle_game_ready(ctx: Sly3Context) -> None:
   if ctx.current_map != current_map or new_connection:
     ctx.current_map = current_map
     ctx.is_connected_to_server = connected_to_server
-    await init(ctx, connected_to_server)
+    await init(ctx)
 
-  await update(ctx, connected_to_server)
+  await update(ctx)
 
   if ctx.server:
     ctx.last_error_message = None
@@ -200,7 +208,8 @@ async def pcsx2_sync_task(ctx: Sly3Context):
     try:
       is_connected = ctx.game_interface.get_connection_state()
       update_connection_status(ctx, is_connected)
-      if is_connected:
+      game_started = ctx.game_interface.is_game_started()
+      if is_connected and game_started:
         await _handle_game_ready(ctx)
       else:
         await _handle_game_not_ready(ctx)

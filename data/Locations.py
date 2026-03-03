@@ -26,7 +26,7 @@ challenges_list = [
   for challenge in challenges
 ]
 
-location_list = jobs_list + purchases_list + challenges_list
+location_list = jobs_list + purchases_list + challenges_list + [("All Bosses", "-")]
 
 base_code = 8008135
 

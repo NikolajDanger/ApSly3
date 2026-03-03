@@ -5,6 +5,7 @@ from BaseClasses import CollectionState
 
 from worlds.generic.Rules import add_rule
 from .data.Constants import EPISODES, CHALLENGES, REQUIREMENTS
+from .data.Locations import location_dict
 
 if typing.TYPE_CHECKING:
     from . import Sly3World
@@ -78,23 +79,19 @@ def set_rules_sly3(world: "Sly3World"):
     ][world.options.goal.value]
 
     victory_location = world.multiworld.get_location(victory_condition, world.player)
-    victory_location.address = None
-    victory_location.place_locked_item(world.create_event("Victory"))
-    world.multiworld.completion_condition[world.player] = lambda state: state.has("Victory", world.player)
   elif world.options.goal.value == 6:
-    def access_rule(state: CollectionState):
-      victory_conditions = [
-        "An Opera of Fear - Operation: Tar-Be Gone!",
-        "Rumble Down Under - Operation: Moon Crash",
-        "Flight of Fancy - Operation: Turbo Dominant Eagle",
-        "A Cold Alliance - Operation: Wedding Crasher",
-        "Dead Men Tell No Tales - Operation: Reverse Double-Cross",
-        "Honor Among Thieves - Final Legacy"
-      ]
+    all_requirements = list(set(sum([sum(sum(ep,[]),[]) for ep in REQUIREMENTS["Jobs"].values()],[])))
+    menu_region = world.multiworld.get_region("Menu", world.player)
+    menu_region.add_locations({"All Bosses": location_dict["All Bosses"].code})
 
-      return all(
-        world.multiworld.get_location(cond,world.player).access_rule(state)
-        for cond in victory_conditions
+    victory_location = world.multiworld.get_location("All Bosses", world.player)
+    add_rule(
+      victory_location,
+      lambda state, items=reqs: (
+        all(state.has(item, player) for item in all_requirements)
       )
+    )
 
-    world.multiworld.completion_condition[world.player] = access_rule
+  victory_location.address = None
+  victory_location.place_locked_item(world.create_event("Victory"))
+  world.multiworld.completion_condition[world.player] = lambda state: state.has("Victory", world.player)

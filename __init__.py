@@ -109,6 +109,7 @@ class Sly3World(World):
           self.options.thiefnet_locations.value = slot_data["thiefnet_locations"]
           self.options.thiefnet_minimum.value = slot_data["thiefnet_minimum"]
           self.options.thiefnet_maximum.value = slot_data["thiefnet_maximum"]
+          self.options.bonus_crew_member.value = slot_data["bonus_crew_member"]
       return
 
     self.validate_options(self.options)
@@ -159,6 +160,7 @@ class Sly3World(World):
       "thiefnet_locations",
       "thiefnet_minimum",
       "thiefnet_maximum",
+      "bonus_crew_member",
     )
 
   def fill_slot_data(self) -> Mapping[str, Any]:
