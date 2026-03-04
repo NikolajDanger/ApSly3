@@ -240,7 +240,9 @@ REQUIREMENTS = {
       [[]]
     ],
     "Flight of Fancy": [
-      [[]],
+      [
+        ["Bentley"]
+      ],
       [
         ["Murray", "Bentley", "Guru", "Fishing Pole"],
         ["Murray"],
@@ -375,8 +377,45 @@ REQUIREMENTS = {
   }
 }
 
+JOB_IDS = {
+  "An Opera of Fear": [
+    [2085],
+    [2230,2283,2329],
+    [2139,2168,2187,2352],
+    [2419]
+  ],
+  "Rumble Down Under": [
+    [2577],
+    [2596,2805,2695,2663],
+    [2623,2730,2780],
+    [2843]
+  ],
+  "Flight of Fancy": [
+    [2983],
+    [3025,3061,3101,3140],
+    [3202,3164,3225],
+    [3259]
+  ],
+  "A Cold Alliance": [
+    [3381],
+    [3449,3509,3540,3584],
+    [3629,3672,3684],
+    [3712]
+  ],
+  "Dead Men Tell No Tales": [
+    [3848],
+    [3907,4038,3991],
+    [4071,4101,4120],
+    [4145]
+  ],
+  "Honor Among Thieves": [
+    [4327,4369,4396,4412,4436,4479,4505,4544]
+  ]
+}
+
 ADDRESSES = {
   "SCUS-97464" : {
+    "items received": 0x4695A0,
     "world id": 0x468D30,
     "map id": 0x47989C,
     "job id": 0x36DB98,
@@ -390,117 +429,128 @@ ADDRESSES = {
     "gadgets": 0x468DCC,
     "coins": 0x468DDC,
     "DAG root": 0x478C8C,
-    "jobs": [
-      [
-        [0x1335d10]
+    "job completed": {
+      "An Opera of Fear": [
+        [
+          0x468FEC,
+        ],
+        [
+          0x468FAC,
+          0x468FBC,
+          0x468F7C,
+        ],
+        [
+          0x46900C,
+          0x468F6C,
+          0x468FFC,
+          0x468F9C,
+        ],
+        [
+          0x468FCC,
+        ],
       ],
-      [
-        [0x1350560,0x1357f80,0x135aba0]
+      "Rumble Down Under": [
+        [
+          0x46909C,
+        ],
+        [
+          0x46902C,
+          0x46903C,
+          0x46905C,
+          0x4690AC,
+        ],
+        [
+          0x46904C,
+          0x46901C,
+          0x46906C,
+        ],
+        [
+          0x46907C,
+        ],
       ],
-      [],
-      [],
-      [],
-      []
-    ],
+      "Flight of Fancy": [
+        [
+          0x46916C,
+        ],
+        [
+          0x4690DC,
+          0x4690EC,
+          0x46910C,
+          0x46917C,
+        ],
+        [
+          0x46919C,
+          0x46918C,
+          0x46914C,
+        ],
+        [
+          0x46911C,
+        ],
+      ],
+      "A Cold Alliance": [
+        [
+          0x46920C,
+        ],
+        [
+          0x4691BC,
+          0x46922C,
+          0x46923C,
+          0x46921C,
+        ],
+        [
+          0x46925C,
+          0x4691FC,
+          0x4691AC,
+        ],
+        [
+          0x4691CC,
+        ],
+      ],
+      "Dead Men Tell No Tales": [
+        [
+          0x4692FC,
+        ],
+        [
+          0x4692CC,
+          0x4692BC,
+          0x46931C,
+        ],
+        [
+          0x46930C,
+          0x46929C,
+          0x46926C,
+        ],
+        [
+          0x4692AC,
+        ],
+      ],
+      "Honor Among Thieves": [
+        [
+          0x46936C,
+          0x46938C,
+          0x46935C,
+          0x46934C,
+          0x46932C,
+          0x46937C,
+          0x46939C,
+          0x46933C,
+        ]
+      ],
+    },
+    "active character pointer": 0x36F84C,
+    "infobox string": 0x46F788,
+    "thiefnet start": 0x343208,
+    "string table": 0x47A2D8,
     "text": {
-      "powerups": [
-        {
-          "Trigger Bomb": (0x58db60,0x58dcf0),
-          "Fishing Pole": (0x595da0,0x595fc0),
-          "Alarm Clock": (0x591db0,0x591f40),
-          "Adrenaline Burst": (0x58e800,0x58e9c0),
-          "Health Extractor": (0x58ebe0,0x58ee00),
-          "Hover Pack": (0x58ef90,0x58f1b0),
-          "Insanity Strike": (0x593a40,0x593b70),
-          "Grapple-Cam": (0x5957d0,0x595ae0),
-          "Size Destabilizer": (0x58df70,0x58e170),
-          "Rage Bomb": (0x594160,0x5942d0),
-          "Reduction Bomb": (0x58f260,0x58f390),
-          "Be The Ball": (0x5955c0,0x595730),
-          "Berserker Charge": (0x5912d0,0x591380),
-          "Juggernaut Throw": (0x590730,0x590850),
-          "Guttural Roar": (0x5914e0,0x591610),
-          "Fists of Flame": (0x58f960,0x5900b0),
-          "Temporal Lock": (0x58f440,0x58f5a0),
-          "Raging Inferno Flop": (0x5916c0,0x5917f0),
-          "Diablo Fire Slam": (0x590fa0,0x591090),
-          "Smoke Bomb": (0x5918f0,0x591a00),
-          "Combat Dodge": (0x591b40,0x591c90),
-          "Paraglide": (0x5921f0,0x5924c0),
-          "Silent Obliteration": (0x592690,0x592870),
-          "Feral Pounce": (0x592c50,0x592de0),
-          "Mega Jump": (0x592fc0,0x593180),
-          "Knockout Dive": (0x5936d0,0x5938e0),
-          "Shadow Power Level 1": (0x594770,0x594880),
-          "Thief Reflexes": (0x592a10,0x592b50),
-          "Shadow Power Level 2": (0x5949e0,0x594d00),
-          "Rocket Boots": (0x577060,0x577300),
-          "Treasure Map": (0x576af0,0x576dc0),
-          "ENGLISHpowerup_shield_name": (0x596280,0x576450),
-          "Venice Disguise": (0x577510,0x577670),
-          "Photographer Disguise": (0x5778f0,0x577ac0),
-          "Pirate Disguise": (0x577ca0,0x577e20),
-          "Spin Attack Level 1": (0x577fe0,0x5781b0),
-          "Spin Attack Level 2": (0x578350,0x578500),
-          "Spin Attack Level 3": (0x578770,0x578af0),
-          "Jump Attack Level 1": (0x578d80,0x579070),
-          "Jump Attack Level 2": (0x579390,0x579620),
-          "Jump Attack Level 3": (0x5797b0,0x579950),
-          "Push Attack Level 1": (0x579ae0,0x579d70),
-          "Push Attack Level 2": (0x579f70,0x57a1f0),
-          "Push Attack Level 3": (0x57a670,0x57a940),
-        },
-        {},
-        {
-          "Trigger Bomb": (0x592c40,0x592e00),
-          "Fishing Pole": (0x59b000,0x59b2d0),
-          "Alarm Clock": (0x5962b0,0x5964c0),
-          "Adrenaline Burst": (0x593410,0x5934f0),
-          "Health Extractor": (0x5935c0,0x593660),
-          "Hover Pack": (0x593750,0x593840),
-          "Insanity Strike": (0x598480,0x598690),
-          "Grapple-Cam": (0x59acd0,0x59ae50),
-          "Size Destabilizer": (0x592f30,0x593010),
-          "Rage Bomb": (0x599250,0x599420),
-          "Reduction Bomb": (0x5939b0,0x593b00),
-          "Be The Ball": (0x59a9c0,0x59ab70),
-          "Berserker Charge": (0x5955a0,0x595700),
-          "Juggernaut Throw": (0x594c50,0x594dd0),
-          "Guttural Roar": (0x595830,0x595920),
-          "Fists of Flame": (0x5944a0,0x594610),
-          "Temporal Lock": (0x593c40,0x593e60),
-          "Raging Inferno Flop": (0x595a50,0x595bd0),
-          "Diablo Fire Slam": (0x595260,0x595450),
-          "Smoke Bomb": (0x595d60,0x595ee0),
-          "Combat Dodge": (0x596050,0x596190),
-          "Paraglide": (0x5966d0,0x5968d0),
-          "Silent Obliteration": (0x596ba0,0x596df0),
-          "Feral Pounce": (0x597290,0x5973f0),
-          "Mega Jump": (0x5975f0,0x597780),
-          "Knockout Dive": (0x597e10,0x598130),
-          "Shadow Power Level 1": (0x599c30,0x599eb0),
-          "Thief Reflexes": (0x596f70,0x597110),
-          "Shadow Power Level 2": (0x59a140,0x59a310),
-          "Rocket Boots": (0x57aa00,0x57ace0),
-          "Treasure Map": (0x57a3e0,0x57a780),
-          "ENGLISHpowerup_shield_name": (0x59b550,0x579c50),
-          "Venice Disguise": (0x57ae40,0x57b040),
-          "Photographer Disguise": (0x57b220,0x57b3b0),
-          "Pirate Disguise": (0x57b5d0,0x57b7b0),
-          "Spin Attack Level 1": (0x57b9e0,0x57bc40),
-          "Spin Attack Level 2": (0x57be80,0x57c130),
-          "Spin Attack Level 3": (0x57c300,0x57c5b0),
-          "Jump Attack Level 1": (0x57c7c0,0x57c970),
-          "Jump Attack Level 2": (0x57cb00,0x57cc30),
-          "Jump Attack Level 3": (0x57cdf0,0x57d010),
-          "Push Attack Level 1": (0x57d370,0x57d680),
-          "Push Attack Level 2": (0x57d940,0x57dc80),
-          "Push Attack Level 3": (0x57e070,0x57e3b0),
-        },
-        {},
-        {},
-        {}
-      ]
+      "Press START (start)": 0x5639b0,
+      "Press START (resume)": 0x563bd0,
+      "Press SELECT": 0x564380,
+      "An Opera of Fear": 0x53b380,
+      "Rumble Down Under": 0x53b4e0,
+      "Flight of Fancy": 0x53b5a0,
+      "A Cold Alliance": 0x53b710,
+      "Dead Men Tell No Tales": 0x53b7b0,
+      "Honor Among Thieves": 0x53b900,
     }
   }
 }
@@ -524,4 +574,52 @@ MENU_RETURN_DATA = (
   "7B8274B1"
 )
 
-DEATH_TYPES = {} # TODO
+# TODO: Death Messages
+DEATH_TYPES = {}
+
+POWER_UP_TEXT = [
+  ("Trigger Bomb","Throwable bomb with remote detonation"),
+  ("Fishing Pole","Fish loot out of guards' pockets"),
+  ("Alarm Clock","Confuse your enemies with this distracting alarm clock"),
+  ("Adrenaline Burst","Move like no turtle has moved before"),
+  ("Health Extractor","Capture guards and extract medicine from them"),
+  ("Hover Pack","Extend your jumps by hovering in the air"),
+  ("Insanity Strike","Make enemies attack each other with the wheelchair spin attack"),
+  ("Grapple-Cam","A remote camera with amazing abilities"),
+  ("Size Destabilizer","Shrink guards by whacking them with your wheelchair"),
+  ("Rage Bomb","Confuse all enemies in the area into attacking each other"),
+  ("Reduction Bomb","Shrink enemies in the area"),
+  ("Be The Ball","Roll around like a ball"),
+  ("Berserker Charge","Scatter enemies with this powerful run"),
+  ("Juggernaut Throw","Thrown enemies explode on impact"),
+  ("Guttural Roar","Terrify your foes"),
+  ("Fists of Flame","Turn ordinary punches into fiery ones"),
+  ("Temporal Lock","Freeze time around the guards…temporarily, at least"),
+  ("Raging Inferno Flop","Use while jumping to create a wall of flame on impact"),
+  ("Diablo Fire Slam","Use while carrying an enemy to create a deadly firestorm"),
+  ("Smoke Bomb","Obscure the vision of your enemies for a hasty getaway"),
+  ("Combat Dodge","Sidestep enemies in combat"),
+  ("Paraglide","Fly through the air with this quick-deploy paraglider"),
+  ("Silent Obliteration","Juggle an unaware enemy with &2T&."),
+  ("Feral Pounce","Jump over vast distances"),
+  ("Mega Jump","Jump to impressive heights"),
+  ("Knockout Dive","Leap at enemies, leaving them stunned on the ground"),
+  ("Shadow Power Level 1","Move without being seen"),
+  ("Thief Reflexes","Slow time to a crawl"),
+  ("Shadow Power Level 2","Attack foes while invisible"),
+  ("Rocket Boots","Zoom through the world with these speedy boots"),
+  ("Treasure Map","Follow the trail to find buried treasure"),
+  ("ENGLISHpowerup_shield_name","ENGLISHpowerup_shield_desc"),
+  ("Venice Disguise","Fool guards in Venice with this disguise"),
+  ("Photographer Disguise","Fool guards in China with this disguise"),
+  ("Pirate Disguise","Fool Guards in Blood Bath Bay with this disguise"),
+  ("Spin Attack Level 1","Press &2T&. and &2S&. to do a spin attack"),
+  ("Spin Attack Level 2","Press &2T&., &2T&. and &2S&. to do a powerful spin attack"),
+  ("Spin Attack Level 3","Press &2T&., &2T&., &2T&. and &2S&. to do a devastating spin attack"),
+  ("Jump Attack Level 1","Press &2T&. and &2X&. to do a jump attack"),
+  ("Jump Attack Level 2","Press &2T&., &2T&. and &2X&. to do a powerful jump attack"),
+  ("Jump Attack Level 3","Press &2T&., &2T&., &2T&. and &2X&. to do a devastating jump attack"),
+  ("Push Attack Level 1","Press &2T&. then &2O&. to do a push attack"),
+  ("Push Attack Level 2","Press &2T&., &2T&. and &2O&. to do a powerful push attack"),
+  ("Push Attack Level 3","Press &2T&., &2T&., &2T&. and &2O&. to do a devastating push attack"),
+]

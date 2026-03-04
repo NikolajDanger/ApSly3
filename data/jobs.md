@@ -156,13 +156,6 @@ Job address: 0xecb450
 Job index: 62
 Job state (should be 2): 2
 
-
-## Beauty and the Beast (bentley)
-Job ID: 3225
-Job address: 0x7adf50
-Job index: 95
-Job state (should be 2): 2
-
 ## Giant Wolf Massacre (bentley)
 Job ID: 3202
 Job address: 0x642a90
@@ -173,6 +166,12 @@ Job state (should be 2): 2
 Job ID: 3164
 Job address: 0x63b4d0
 Job index: 70
+Job state (should be 2): 2
+
+## Beauty and the Beast (bentley)
+Job ID: 3225
+Job address: 0x7adf50
+Job index: 95
 Job state (should be 2): 2
 
 ## Operation: Turbo Dominant Eagle (sly)
@@ -190,24 +189,22 @@ Job address: 0x67de40
 Job index: 1
 Job state (should be 2): 2
 
-## Grapple-Cam Break-in (sly)
-Job ID: 3540
-Job address: 0x1625780
-Job index: 63
-Job state (should be 2): 2
-
-
 ## Get a Job (bentley)
 Job ID: 3449
 Job address: 0x682ba0
 Job index: 36
 Job state (should be 2): 2
 
-
 ## Tearful Reunion (murray)
 Job ID: 3509
 Job address: 0x16200f0
 Job index: 52
+Job state (should be 2): 2
+
+## Grapple-Cam Break-in (sly)
+Job ID: 3540
+Job address: 0x1625780
+Job index: 63
 Job state (should be 2): 2
 
 ## Laptop Retrieval (bentley)
@@ -216,20 +213,17 @@ Job address: 0x68e560
 Job index: 82
 Job state (should be 2): 2
 
-
-## Down the Line (murray)
-Job ID: 3672
-Job address: 0x16377e0
-Job index: 117
-Job state (should be 2): 2
-
-
 ## Vampiric Demise (sly)
 Job ID: 3629
 Job address: 0x1630060
 Job index: 97
 Job state (should be 2): 2
 
+## Down the Line (murray)
+Job ID: 3672
+Job address: 0x16377e0
+Job index: 117
+Job state (should be 2): 2
 
 ## A Battery of Peril (bentley)
 Job ID: 3684
@@ -270,6 +264,12 @@ Job address: 0x788780
 Job index: 59
 Job state (should be 2): 2
 
+## Crusher from the Depths (sly)
+Job ID: 4071
+Job address: 0x602a30
+Job index: 98
+Job state (should be 2): 2
+
 ## Deep Sea Danger (sly)
 Job ID: 4101
 Job address: 0x6e52c0
@@ -280,12 +280,6 @@ Job state (should be 2): 2
 Job ID: 4120
 Job address: 0x60fa80
 Job index: 116
-Job state (should be 2): 2
-
-## Crusher from the Depths (sly)
-Job ID: 4071
-Job address: 0x602a30
-Job index: 98
 Job state (should be 2): 2
 
 ## Operation: Reverse Double-Cross

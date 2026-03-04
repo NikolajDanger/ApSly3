@@ -14,8 +14,8 @@ class StartingEpisode(Choice):
   """
   Select Which episode to start with.
 
-  A Cold Alliance and Dead Men Tell No Tales require starting items, so
-  starting with them will break a solo game.
+  Flight of Fancy, A Cold Alliance and Dead Men Tell No Tales require starting
+  items, so starting with them will break a solo game.
   """
 
   display_name = "Starting Episode"
@@ -118,6 +118,14 @@ class ThiefNetCostMaximum(Range):
   range_end = 9999
   default = 2000
 
+
+class ScoutThiefnet(DefaultOnToggle):
+    """
+    Whether to scout/hint ThiefNet checks. They will still be displayed in game.
+    """
+
+    display_name = "Scout Thiefnet"
+
 @dataclass
 class Sly3Options(PerGameCommonOptions):
   start_inventory_from_pool: StartInventoryPool
@@ -131,6 +139,7 @@ class Sly3Options(PerGameCommonOptions):
   thiefnet_minimum: ThiefNetCostMinimum
   thiefnet_maximum: ThiefNetCostMaximum
   bonus_crew_member: BonusCrewMember
+  scout_thiefnet: ScoutThiefnet
 
 sly3_option_groups = [
   OptionGroup("Goal",[
@@ -145,6 +154,7 @@ sly3_option_groups = [
   OptionGroup("Locations",[
     ThiefNetLocations,
     ThiefNetCostMinimum,
-    ThiefNetCostMaximum
+    ThiefNetCostMaximum,
+    ScoutThiefnet
   ])
 ]

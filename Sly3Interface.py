@@ -5,7 +5,7 @@ from enum import IntEnum
 import traceback
 
 from .pcsx2_interface.pine import Pine
-from .data.Constants import ADDRESSES, MENU_RETURN_DATA
+from .data.Constants import ADDRESSES, MENU_RETURN_DATA, POWER_UP_TEXT
 
 class Sly3Episode(IntEnum):
   Title_Screen = 0
@@ -185,6 +185,18 @@ class Sly3Interface(GameInterface):
 
     return pointer
 
+  def _find_string_address(self, _id: int) -> int:
+    # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
+    # address to the string
+
+    string_table_address = self._read32(self.addresses["string table"])
+    i = 0
+    while True:
+      string_id = self._read32(string_table_address+i*8)
+      if string_id == _id:
+        return self._read32(string_table_address+i*8+4)
+      i += 1
+
   ###################
   ## Current State ##
   ###################
@@ -196,35 +208,95 @@ class Sly3Interface(GameInterface):
     return self._read32(self.addresses["loading"]) == 2
 
   def in_safehouse(self) -> bool:
-    # TODO
-    return False
+    return (
+      not self.is_loading() and
+      self.in_hub() and
+      self._read32(self.addresses["infobox string"]) in [
+        5345,5346,5347,5348,5349,5350,5351
+      ]
+    )
 
   def in_hub(self) -> bool:
-    # TODO
-    return False
+    return self.get_current_map() in [3,8,15,23,31,35]
 
-  def is_goaled(self) -> bool:
-    # TODO
+  def is_goaled(self, goal: int) -> bool:
+    # TODO: Goal
     return False
 
   def is_game_started(self) -> bool:
-    # TODO
-    return False
+    world_id = self.get_current_episode()
+    map_id = self.get_current_map()
+    return not (
+      world_id == 0 and
+      map_id in [35,0xffffffff]
+    )
 
   def showing_infobox(self) -> bool:
-    # TODO
+    # TODO: Notifications
     return False
 
   def alive(self) -> bool:
-    # TODO
-    return False
+    active_character = self._read32(self.addresses["active character pointer"])
+    if active_character == 0:
+      return True
+
+    health_gui = self._read32(active_character+0x16c)
+    health = self._read32(active_character+0x16c)
+    return health_gui != 2 or health != 0
 
   #######################
   ## Getters & Setters ##
   #######################
+  def set_thiefnet(self, data: list[tuple[int,str]]) -> None:
+    addresses = [
+      self.addresses["thiefnet start"]+i*0x3c
+      for i in range(44)
+      if i not in [28,36,37,39,40,42,43]
+    ][:len(data)]
+
+    for i, address in enumerate(addresses):
+      self._write32(address,data[i][0])
+      self._write32(address+0xC,0)
+      name_id = self._read32(address+0x14)
+      name_address = self._find_string_address(name_id)
+      self.set_text(name_address, f"Check #{i+1}")
+
+      description_id = self._read32(address+0x18)
+      description_address = self._find_string_address(description_id)
+      self.set_text(description_address, data[i][1])
+
+    for i in [28,36,37,39,40,42,43]+list(range(len(data),44)):
+      address = self.addresses["thiefnet start"]+i*0x3c
+      self._write32(address+0xC,10)
+
+  def reset_thiefnet(self) -> None:
+    for i in range(44):
+      address = self.addresses["thiefnet start"]+i*0x3c
+      name_id = self._read32(address+0x14)
+      name_address = self._find_string_address(name_id)
+      self.set_text(name_address, POWER_UP_TEXT[i][0])
+
+      description_id = self._read32(address+0x18)
+      description_address = self._find_string_address(description_id)
+      self.set_text(description_address, POWER_UP_TEXT[i][1])
+
+  def set_text(self, text: int|str, replacement: str) -> None:
+    if isinstance(text,str):
+      text_pointer = self.addresses["text"].get(text, None)
+      if isinstance(text_pointer, dict):
+        text_pointer = text_pointer.get(self.get_current_map(), None)
+
+      if not isinstance(text_pointer,int):
+        return
+    else:
+      text_pointer = text
+
+    replacement_string = replacement.encode("utf-16-le")+b"\x00\x00"
+    self._write_bytes(text_pointer,replacement_string)
+
   def get_current_episode(self) -> Sly3Episode:
-    episode_num = self._read32(self.addresses["world id"])
-    return Sly3Episode(episode_num)
+    episode_num = self._read32(self.addresses["world id"]) - 2
+    return Sly3Episode(max(0,episode_num))
 
   def get_current_map(self) -> int:
     return self._read32(self.addresses["map id"])
@@ -234,6 +306,9 @@ class Sly3Interface(GameInterface):
 
   def set_current_job(self, job: int) -> None:
     self._write32(self.addresses["job id"], job)
+
+  def get_items_received(self) -> int:
+    return self._read32(self.addresses["items received"])
 
   def set_items_received(self, n:int) -> None:
     self._write32(self.addresses["items received"], n)
@@ -269,24 +344,26 @@ class Sly3Interface(GameInterface):
     return PowerUps(*relevant_bits)
 
   def activate_jobs(self, job_ids: int|list[int]):
-    # TODO
+    # TODO: Job Markers
     pass
 
   def deactivate_jobs(self, job_ids: int|list[int]):
-    # TODO
+    # TODO: Job Markers
     pass
 
-  def jobs_completed(self, job_ids: int|list[int]):
-    # TODO
-    pass
+  def jobs_completed(self) -> list[bool]:
+    addresses = [a for ep in self.addresses["job completed"].values() for c in ep for a in c]
+    states = self._batch_read32(addresses)
+
+    return [s != 0 for s in states]
 
   def current_infobox(self) -> int:
-    # TODO
-    pass
+    # TODO: Notifications
+    return 0
 
   def get_damage_type(self) -> int:
-    # TODO
-    pass
+    # TODO: Death Messages
+    return 0
 
   #################
   ## Other Utils ##
@@ -298,7 +375,7 @@ class Sly3Interface(GameInterface):
       self.get_current_job() == 1797
     ):
       self.set_current_job(0xffffffff)
-      # self.set_items_received(0)
+      self.set_items_received(0)
 
     self._reload(bytes.fromhex(MENU_RETURN_DATA))
 
@@ -317,16 +394,18 @@ class Sly3Interface(GameInterface):
     self._write32(self.addresses["coins"],new_amount)
 
   def disable_infobox(self):
-    # TODO
+    # TODO: Notifications
     pass
 
-  def set_infobox(self):
-    # TODO
+  def set_infobox(self, text: str):
+    # TODO: Notifications
     pass
 
   def kill_player(self):
-    # TODO
-    pass
+    if self.in_safehouse() or self.get_current_episode() == Sly3Episode.Title_Screen:
+      return
+
+    self._write32(self.addresses["reload"],1)
 
 #### TESTING ZONE ####
 
@@ -362,6 +441,55 @@ def find_string_id(interf: Sly3Interface, _id: int):
       return interf._read32(string_table_address+i*8+4)
     i += 1
 
+def find_string_address(interf: Sly3Interface, address: int):
+  """Searches for a specific string by ID"""
+
+  # String table starts at 0x47A2D8
+
+  # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
+  # address to the string
+
+  string_table_address = interf._read32(0x47A2D8)
+  i = 0
+  while True:
+    string_address = interf._read32(string_table_address+i*8+4)
+    if string_address == address:
+      return interf._read32(string_table_address+i*8)
+    i += 1
+
+def print_string_table(interf: Sly3Interface, n: int):
+  """Prints n entries in the string table"""
+
+  # String table starts at 0x47A2D8
+
+  # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
+  # address to the string
+
+  string_table_address = interf._read32(0x47A2D8)
+  for i in range(n):
+    address = interf._read32(string_table_address+i*8+4)
+    print(read_text(interf, address), i)
+
+def find_text(interf: Sly3Interface, text: str):
+  """Prints n entries in the string table"""
+
+  # String table starts at 0x47A2D8
+
+  # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
+  # address to the string
+
+  string_table_address = interf._read32(0x47A2D8)
+  results = []
+  for i in range(2000):
+    address = interf._read32(string_table_address+i*8+4)
+    try:
+      if text in read_text(interf, address):
+        results.append(address)
+    except:
+      return results
+
+  return results
+
 def print_thiefnet_addresses(interf: Sly3Interface):
   print("        {")
   for i in range(44):
@@ -383,6 +511,28 @@ def print_thiefnet_addresses(interf: Sly3Interface):
     )
 
   print("        }")
+
+def print_thiefnet_text(interf: Sly3Interface):
+  print("[")
+  for i in range(44):
+    address = 0x343208+i*0x3c
+    interf._write32(address,i+1)
+    interf._write32(address+0xC,0)
+
+    name_id = interf._read32(address+0x14)
+    name_address = find_string_id(interf, name_id)
+    name_text = read_text(interf, name_address)
+
+    description_id = interf._read32(address+0x18)
+    description_address = find_string_id(interf, description_id)
+    description_text = read_text(interf, description_address)
+
+    print(
+      "  " +
+      f"(\"{name_text}\",\"{description_text}\"),"
+    )
+
+  print("]")
 
 def current_job_info(interf: Sly3Interface):
   current_job = interf._read32(0x36DB98)
@@ -411,17 +561,30 @@ if __name__ == "__main__":
   # interf.skip_cutscene()
 
   # Loading all power-ups (except the one I don't know)
-  power_ups = PowerUps(True, True, True, False, *[True]*44)
-  interf.set_powerups(power_ups)
+  # power_ups = PowerUps(True, True, True, False, *[True]*44)
+  # interf.set_powerups(power_ups)
 
   # Adding 10000 coins
   #interf.add_coins(10000)
 
   # === Testing Zone ===
 
- # print_thiefnet_addresses(interf)
+  # print_thiefnet_addresses(interf)
 
   # disabling first job of episode 1 (0 = disabled, 1 = available, 2 = in progress, 3 = complete)
   # interf._write32(0x1335d10+0x44, 0)
 
-  current_job_info(interf)
+  # current_job_info(interf)
+  # find_string_id
+
+  # print_string_table(interf, 500)
+
+  # addresses = find_text(interf, "Press &2X&. to ")
+  # print("======")
+  # for address in addresses:
+  #   print(hex(address))
+  #   print(read_text(interf, address))
+  #   print(find_string_address(interf, address))
+  #   print("======")
+
+  print_thiefnet_text(interf)

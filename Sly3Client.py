@@ -72,6 +72,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
   in_hub: bool = False
   current_map: Optional[int] = None
   current_job: Optional[int] = None
+  current_episode: Sly3Episode = Sly3Episode.Title_Screen
 
   # Items and checks
   inventory: Dict[int,int] = {l.code: 0 for l in Items.item_dict.values()}
@@ -79,23 +80,32 @@ class Sly3Context(CommonContext): # type: ignore[misc]
   thiefnet_items: Optional[list[str]] = None
   powerups: PowerUps = PowerUps()
   thiefnet_purchases: PowerUps = PowerUps()
-  jobs_completed: list[list[list[bool]]] = [
-      [[False for _ in chapter] for chapter in episode]
-      for episode in EPISODES.values()
+  jobs_completed: list[bool] = [
+    False for episode in EPISODES.values()
+    for chapter in episode
+    for _ in chapter
   ]
-  challenges_completed: list[list[list[bool]]] = [
-      [[False for _ in chapter] for chapter in episode]
-      for episode in CHALLENGES.values()
+  challenges_completed: list[bool] = [
+    False for episode in CHALLENGES.values()
+    for chapter in episode
+    for _ in chapter
   ]
 
   def __init__(self, server_address, password):
     super().__init__(server_address, password)
     self.version = [0,0,0]
     self.game_interface = Sly3Interface(logger)
+    self.available_episodes[Sly3Episode.Title_Screen] = True
 
   def on_deathlink(self, data: Utils.Dict[str, Utils.Any]) -> None:
-    # TODO
-    pass
+    super().on_deathlink(data)
+    if self.death_link_enabled:
+      self.queued_deaths += 1
+      cause = data.get("cause", "")
+      if cause:
+        self.notification(f"DeathLink: {cause}")
+      else:
+        self.notification(f"DeathLink: Received from {data['source']}")
 
   def make_gui(self):
     ui = super().make_gui()
@@ -136,13 +146,13 @@ class Sly3Context(CommonContext): # type: ignore[misc]
       Utils.async_start(self.send_msgs([{
         "cmd": "LocationScouts",
         "locations": [
-          Locations.location_dict[location].code
-          for location in Locations.location_groups["Purchase"]
+          Locations.location_dict[f"ThiefNet {i+1:02}"].code
+          for i in range(args["slot_data"]["thiefnet_locations"])
         ]
       }]))
 
-  def notification(self):
-    # TODO
+  def notification(self, text: str):
+    # TODO: Notifications
     pass
 
 def update_connection_status(ctx: Sly3Context, status: bool):
@@ -166,6 +176,7 @@ async def _handle_game_ready(ctx: Sly3Context) -> None:
   current_map = ctx.game_interface.get_current_map()
   ctx.in_hub = ctx.game_interface.in_hub()
   ctx.current_job = ctx.game_interface.get_current_job()
+  ctx.current_episode = ctx.game_interface.get_current_episode()
 
   ctx.game_interface.skip_cutscene()
 
@@ -208,8 +219,7 @@ async def pcsx2_sync_task(ctx: Sly3Context):
     try:
       is_connected = ctx.game_interface.get_connection_state()
       update_connection_status(ctx, is_connected)
-      game_started = ctx.game_interface.is_game_started()
-      if is_connected and game_started:
+      if is_connected:
         await _handle_game_ready(ctx)
       else:
         await _handle_game_not_ready(ctx)

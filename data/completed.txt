@@ -78,8 +78,8 @@ m6_dive - 46935C
 m6_car - 46934C
 m6_biplane - 46932C
 m6_gauntlet - 46937C
-m6_boss - 46933C
 m6_vault - 46939C
+m6_boss - 46933C
 
 #################
 

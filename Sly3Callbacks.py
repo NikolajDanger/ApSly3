@@ -1,10 +1,13 @@
 from typing import TYPE_CHECKING, Dict, List
 from time import time
+from random import randint
+import asyncio
 
 from NetUtils import ClientStatus
 from BaseClasses import ItemClassification
 
-from .data.Constants import REQUIREMENTS, DEATH_TYPES, EPISODES, CHALLENGES
+from .Sly3Interface import Sly3Episode, PowerUps
+from .data.Constants import REQUIREMENTS, DEATH_TYPES, EPISODES, CHALLENGES, JOB_IDS
 from .data import Items, Locations
 
 if TYPE_CHECKING:
@@ -14,7 +17,7 @@ if TYPE_CHECKING:
 # Helpers #
 ###########
 
-def accessibility(ctx: "Sly3Context") -> Dict[str, Dict[str, List[List[bool]]]]:
+def accessibility(ctx: "Sly3Context") -> Dict[int, bool]:
   section_requirements = {
     episode_name: [
       list(set(sum([
@@ -112,29 +115,72 @@ def accessibility(ctx: "Sly3Context") -> Dict[str, Dict[str, List[List[bool]]]]:
   }
 
   return {
-    "Jobs": job_accessibility,
-    "Challenges": challenge_accessibility
-  }
+    JOB_IDS[ep][i][j]: avail
+    for ep, ep_avail in job_accessibility.items()
+    for i, section_avail in enumerate(ep_avail)
+    for j, avail in enumerate(section_avail)
+  } # TODO: Challenges
 
-def set_thiefnet(ctx: "Sly3Context"):
-  # TODO
-  pass
+async def set_thiefnet(ctx: "Sly3Context"):
+  if ctx.slot_data is None:
+    return
 
-def unset_thiefnet(ctx: "Sly3Context"):
-  # TODO
-  pass
+  thiefnet_n = ctx.slot_data["thiefnet_locations"]
+
+  if ctx.thiefnet_items is None:
+    info = ctx.locations_info
+    ctx.thiefnet_items = []
+    for i in range(thiefnet_n):
+      location_info = info[Locations.location_dict[f"ThiefNet {i+1:02}"].code]
+
+      player_name = ctx.player_names[location_info.player]
+      item_name = ctx.item_names.lookup_in_slot(location_info.item,location_info.player)
+      string = f"{player_name}'s {item_name}"
+
+      ctx.thiefnet_items.append(string)
+
+  ctx.thiefnet_purchases = PowerUps(*[
+    Locations.location_dict[f"ThiefNet {i+1:02}"].code in ctx.checked_locations
+    for i in range(thiefnet_n)
+  ])
+
+  if ctx.slot_data["scout_thiefnet"]:
+    await ctx.send_msgs([{
+      "cmd": "LocationScouts",
+      "locations": [
+          Locations.location_dict[f"ThiefNet {i+1:02}"].code
+          for i in range(thiefnet_n)
+      ],
+      "create_as_hint": 2
+  }])
+
+  ctx.game_interface.set_powerups(ctx.thiefnet_purchases)
+  thiefnet_data = [
+    (ctx.slot_data["thiefnet_costs"][i], ctx.thiefnet_items[i])
+    for i in range(thiefnet_n)
+  ]
+  ctx.game_interface.set_thiefnet(thiefnet_data)
+
+async def reset_thiefnet(ctx: "Sly3Context"):
+  if ctx.in_hub:
+    ctx.thiefnet_purchases = ctx.game_interface.get_powerups()
+  set_powerups(ctx)
+  ctx.game_interface.reset_thiefnet()
 
 def check_jobs(ctx: "Sly3Context"):
-  # TODO
-  pass
+  ctx.jobs_completed = ctx.game_interface.jobs_completed()
 
 def check_challenges(ctx: "Sly3Context"):
-  # TODO
+  # TODO: Challenges
   pass
 
 def set_powerups(ctx: "Sly3Context"):
-  if not ctx.in_safehouse():
+  if not ctx.in_safehouse:
     ctx.game_interface.set_powerups(ctx.powerups)
+
+async def unlock_episodes(ctx):
+  await asyncio.sleep(1)
+  ctx.game_interface.unlock_episodes()
 
 #########
 # Steps #
@@ -144,29 +190,61 @@ async def update_in_safehouse(ctx: "Sly3Context"):
   in_safehouse = ctx.game_interface.in_safehouse()
   if in_safehouse and not ctx.in_safehouse:
     ctx.in_safehouse = True
-    set_thiefnet(ctx)
+    await set_thiefnet(ctx)
   elif ctx.in_safehouse and not in_safehouse:
     ctx.in_safehouse = False
-    unset_thiefnet(ctx)
+    await reset_thiefnet(ctx)
 
 async def replace_text(ctx: "Sly3Context"):
-  # TODO
-  # I'm not totally sure yet which text I'm replacing
-  pass
+  if ctx.current_episode != Sly3Episode.Title_Screen:
+    return
+
+  if ctx.current_map == 35:
+    ctx.game_interface.set_text(
+      "Press START (start)",
+      "Connected to Archipelago"
+    )
+    ctx.game_interface.set_text(
+      "Press START (resume)",
+      "Connected to Archipelago"
+    )
+
+  elif ctx.current_map == 0:
+    for i in range(1,7):
+      ep_name = Sly3Episode(i).name.replace("_"," ")
+
+      if ctx.available_episodes[Sly3Episode(i)]:
+        rep_text = ep_name
+      elif i == 6:
+        obtained_crew = len([
+          i for i in ctx.items_received
+          if Items.from_id(i.item).category == "Crew"
+        ])
+        rep_text = f"{obtained_crew}/7 crew members"
+      else:
+        rep_text = "Locked"
+
+      ctx.game_interface.set_text(
+        ep_name,
+        rep_text
+      )
+
 
 async def kick_from_episode(ctx: "Sly3Context", availability: Dict):
-  # TODO
-  not_connected = ctx.current_map == 0 and not ctx.is_connected_to_server
-  current_episode = ctx.game_interface.get_current_episode()
-  ep_not_unlocked = current_episode == 0 or ctx.available_episodes[current_episode-1]
-  job_not_available = False # if current job/challenge not available
+  not_connected = ctx.current_episode != 0 and not ctx.is_connected_to_server
+
+  ep_not_unlocked = not ctx.available_episodes[Sly3Episode(ctx.current_episode)]
+
+  job_not_available = not availability.get(ctx.current_job,True)
 
   if not_connected or ep_not_unlocked or job_not_available:
+    print("Kicking")
+    print(not_connected, ep_not_unlocked, job_not_available)
     ctx.game_interface.to_episode_menu()
 
-async def check_jobs_and_challenges(ctx: "Sly3Context"):
-  check_jobs()
-  check_challenges()
+async def check_locations(ctx: "Sly3Context"):
+  check_jobs(ctx)
+  check_challenges(ctx)
 
 async def send_checks(ctx: "Sly3Context"):
   if ctx.slot_data is None:
@@ -174,7 +252,7 @@ async def send_checks(ctx: "Sly3Context"):
 
   # ThiefNet purchases
   if ctx.in_safehouse:
-    ctx.thiefnet_purchases = ctx.game_interface.read_powerups()
+    ctx.thiefnet_purchases = ctx.game_interface.get_powerups()
   purchases = list(ctx.thiefnet_purchases)
   purchases = (
     purchases[4:32] +
@@ -192,32 +270,106 @@ async def send_checks(ctx: "Sly3Context"):
       ctx.locations_checked.add(location_code)
 
   # Jobs
-  for i, episode in enumerate(ctx.jobs_completed):
-    episode_name = list(EPISODES.keys())[i]
-    for j, chapter in enumerate(episode):
-      for k, job in enumerate(chapter):
-        if job:
-          job_name = EPISODES[episode_name][j][k]
+  i = 0
+  for episode_name, episode in EPISODES.items():
+    for chapter in episode:
+      for job_name in chapter:
+        if ctx.jobs_completed[i]:
           location_name = f"{episode_name} - {job_name}"
           location_code = Locations.location_dict[location_name].code
           ctx.locations_checked.add(location_code)
+        i += 1
 
   # Challenges
-  for i, episode in enumerate(ctx.challenges_completed):
-    episode_name = list(CHALLENGES.keys())[i]
-    for j, chapter in enumerate(episode):
-      for k, job in enumerate(chapter):
-        if job:
-          job_name = CHALLENGES[episode_name][j][k]
-          location_name = f"{episode_name} - {job_name}"
+  i = 0
+  for episode_name, episode in CHALLENGES.items():
+    for chapter in episode:
+      for challenge_name in chapter:
+        if ctx.challenges_completed[i]:
+          location_name = f"{episode_name} - {challenge_name}"
           location_code = Locations.location_dict[location_name].code
           ctx.locations_checked.add(location_code)
+        i += 1
 
   await ctx.send_msgs([{"cmd": 'LocationChecks', "locations": ctx.locations_checked}])
 
 async def receive_items(ctx: "Sly3Context"):
-  # TODO
-  pass
+  if ctx.slot_data is None:
+    return
+
+  items_n = ctx.game_interface.get_items_received()
+
+  network_items = ctx.items_received
+  available_episodes = {e: False for e in Sly3Episode}
+  available_episodes[Sly3Episode.Title_Screen] = True
+  available_episodes[Sly3Episode.Honor_Among_Thieves] = len([
+    i for i in network_items
+    if Items.from_id(i.item).category == "Crew"
+  ]) == 7
+
+  new_powerups = list(PowerUps(True))
+  powerup_fields = PowerUps._fields
+
+  for i, network_item in enumerate(network_items):
+    item = Items.from_id(network_item.item)
+    player = ctx.player_names[network_item.player]
+
+    if i >= items_n:
+      ctx.inventory[network_item.item] += 1
+      ctx.notification(f"Received {item.name} from {player}")
+
+    if item.category == "Episode":
+      episode = Sly3Episode[
+        item.name.replace(" ","_")
+      ]
+
+      available_episodes[episode] = True
+    elif item.category == "Power-Up":
+      item_name = item.name.lower().replace(" ","_")
+      if item_name == "Progressive Shadow Power":
+        if new_powerups[30]:
+          idx = 32
+        else:
+          idx = 30
+      elif item_name == "Progressive Spin Attack":
+        if new_powerups[40]:
+          idx = 41
+        elif new_powerups[39]:
+          idx = 40
+        else:
+          idx = 39
+      elif item_name == "Progressive Jump Power":
+        if new_powerups[43]:
+          idx = 44
+        elif new_powerups[42]:
+          idx = 43
+        else:
+          idx = 42
+      elif item_name == "Progressive Push Attack":
+        if new_powerups[46]:
+          idx = 47
+        elif new_powerups[45]:
+          idx = 46
+        else:
+          idx = 45
+      else:
+        idx = powerup_fields.index(item_name)
+
+      new_powerups[idx] = True
+    elif item.name == "Coins" and i >= items_n:
+      amount = randint(
+        ctx.slot_data["coins_minimum"],
+        ctx.slot_data["coins_maximum"]
+      )
+      ctx.game_interface.add_coins(amount)
+
+  if ctx.current_episode != 0 and not ctx.in_safehouse:
+      set_powerups(ctx)
+
+  ctx.game_interface.set_items_received(len(network_items))
+  ctx.available_episodes = available_episodes
+  ctx.powerups = PowerUps(*new_powerups)
+
 
 async def check_goal(ctx: "Sly3Context"):
   if ctx.slot_data is None:
@@ -230,8 +382,19 @@ async def check_goal(ctx: "Sly3Context"):
     await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
 
 async def handle_job_markers(ctx: "Sly3Context", availability: Dict):
-  # TODO
-  pass
+  episode = ctx.current_episode.name.replace("_"," ")
+  job_ids = JOB_IDS[episode]
+  active_jobs = []
+  inactive_jobs = []
+  for section in job_ids:
+    for job_id in section:
+      if availability[job_id]:
+        active_jobs.append(job_id)
+      else:
+        inactive_jobs.append(job_id)
+
+  ctx.game_interface.activate_jobs(active_jobs)
+  ctx.game_interface.activate_jobs(inactive_jobs)
 
 async def handle_notifications(ctx: "Sly3Context"):
   if (
@@ -283,8 +446,9 @@ async def init(ctx: "Sly3Context") -> None:
     return
 
   if ctx.current_map == 0:
-    ctx.game_interface.unlock_episodes()
+    asyncio.create_task(unlock_episodes(ctx))
 
+  await receive_items(ctx)
   await replace_text(ctx)
   # Maybe fix jobs if they break?
 
@@ -293,19 +457,23 @@ async def update(ctx: "Sly3Context") -> None:
   if ctx.current_map is None:
     return
 
+  if not ctx.game_interface.is_game_started():
+    return
+
   availability = accessibility(ctx)
-  kick_from_episode(ctx, availability)
+  await kick_from_episode(ctx, availability)
 
   if not ctx.is_connected_to_server:
     return
 
   await update_in_safehouse(ctx)
-  await check_jobs_and_challenges(ctx)
+  await check_locations(ctx)
   await send_checks(ctx)
   await receive_items(ctx)
   await check_goal(ctx)
-  await handle_job_markers(ctx, availability["Jobs"])
+  if ctx.game_interface.in_hub():
+    await handle_job_markers(ctx, availability)
 
-  if ctx.in_safehouse:
+  if ctx.current_map != 0 and not ctx.in_safehouse:
     await handle_notifications(ctx)
     await handle_deathlink(ctx)

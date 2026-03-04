@@ -17,7 +17,7 @@ def set_rules_sly3(world: "Sly3World"):
   # Putting ThiefNet stuff out of logic, to make early game less slow.
   # Divides the items into groups that require a number of episode and crew
   # items to be in logic
-  for i in range(1,thiefnet_items):
+  for i in range(1,thiefnet_items+1):
     divisor = ceil(thiefnet_items/12)
     episode_items_n = ceil(i/divisor)
     add_rule(
@@ -27,14 +27,6 @@ def set_rules_sly3(world: "Sly3World"):
           state.count_group("Episode", player) +
           state.count_group("Crew", player)
         ) >= n
-      )
-    )
-
-  def require(location: str, item: str|list[str]):
-    add_rule(
-      world.get_location(location),
-      lambda state, i=item: (
-        all(state.has(j, player) for j in i)
       )
     )
 
