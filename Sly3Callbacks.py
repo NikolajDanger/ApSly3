@@ -139,7 +139,7 @@ async def set_thiefnet(ctx: "Sly3Context"):
 
       ctx.thiefnet_items.append(string)
 
-  ctx.thiefnet_purchases = PowerUps(*[
+  ctx.thiefnet_purchases = PowerUps(*[False]*4+[
     Locations.location_dict[f"ThiefNet {i+1:02}"].code in ctx.checked_locations
     for i in range(thiefnet_n)
   ])
@@ -235,11 +235,19 @@ async def kick_from_episode(ctx: "Sly3Context", availability: Dict):
 
   ep_not_unlocked = not ctx.available_episodes[Sly3Episode(ctx.current_episode)]
 
-  job_not_available = not availability.get(ctx.current_job,True)
+  try:
+    job_not_available = not availability[ctx.current_job]
+  except:
+    if ctx.current_job != 0xffffffff:
+      print(f"Job ID not accounted for: {ctx.current_job}")
+    job_not_available = False
 
   if not_connected or ep_not_unlocked or job_not_available:
-    print("Kicking")
-    print(not_connected, ep_not_unlocked, job_not_available)
+    ctx.game_interface.logger.debug(
+      f"\nNot connected: {not_connected}"+
+      f"\nEpisode not unlocked: {ep_not_unlocked}"+
+      f"\nJob not available: {job_not_available}"
+    )
     ctx.game_interface.to_episode_menu()
 
 async def check_locations(ctx: "Sly3Context"):
@@ -325,7 +333,7 @@ async def receive_items(ctx: "Sly3Context"):
 
       available_episodes[episode] = True
     elif item.category == "Power-Up":
-      item_name = item.name.lower().replace(" ","_")
+      item_name = item.name.lower().replace(" ","_").replace("-","_")
       if item_name == "Progressive Shadow Power":
         if new_powerups[30]:
           idx = 32
@@ -394,7 +402,7 @@ async def handle_job_markers(ctx: "Sly3Context", availability: Dict):
         inactive_jobs.append(job_id)
 
   ctx.game_interface.activate_jobs(active_jobs)
-  ctx.game_interface.activate_jobs(inactive_jobs)
+  ctx.game_interface.deactivate_jobs(inactive_jobs)
 
 async def handle_notifications(ctx: "Sly3Context"):
   if (
@@ -458,6 +466,8 @@ async def update(ctx: "Sly3Context") -> None:
     return
 
   if not ctx.game_interface.is_game_started():
+    if ctx.game_interface.intro_done():
+      ctx.game_interface.to_episode_menu()
     return
 
   availability = accessibility(ctx)
@@ -471,7 +481,8 @@ async def update(ctx: "Sly3Context") -> None:
   await send_checks(ctx)
   await receive_items(ctx)
   await check_goal(ctx)
-  if ctx.game_interface.in_hub():
+
+  if ctx.current_episode != 0 and ctx.game_interface.in_hub():
     await handle_job_markers(ctx, availability)
 
   if ctx.current_map != 0 and not ctx.in_safehouse:

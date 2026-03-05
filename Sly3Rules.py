@@ -10,6 +10,27 @@ from .data.Locations import location_dict
 if typing.TYPE_CHECKING:
     from . import Sly3World
 
+def make_thiefnet_rule(player: int, n: int):
+  def new_rule(state: CollectionState):
+    if (
+      state.count_group("Episode", player) == 1 and
+      state.has("A Cold Alliance", player) and
+      not all(
+        state.has(item, player)
+        for item in ["Bentley", "Murray", "Guru", "Penelope", "Binocucom"]
+      )
+    ):
+      return False
+
+    progression_items = (
+      state.count_group("Episode", player) +
+      state.count_group("Crew", player)
+    )
+
+    return progression_items >= n
+
+  return new_rule
+
 def set_rules_sly3(world: "Sly3World"):
   player = world.player
   thiefnet_items = world.options.thiefnet_locations.value
@@ -17,18 +38,14 @@ def set_rules_sly3(world: "Sly3World"):
   # Putting ThiefNet stuff out of logic, to make early game less slow.
   # Divides the items into groups that require a number of episode and crew
   # items to be in logic
-  for i in range(1,thiefnet_items+1):
+  if not hasattr(world.multiworld, "generation_is_fake"): # (unless tracking)
     divisor = ceil(thiefnet_items/12)
-    episode_items_n = ceil(i/divisor)
-    add_rule(
-      world.get_location(f"ThiefNet {i:02}"),
-      lambda state, n=episode_items_n: (
-        (
-          state.count_group("Episode", player) +
-          state.count_group("Crew", player)
-        ) >= n
+    for i in range(1,thiefnet_items+1):
+      episode_items_n = ceil(i/divisor)
+      add_rule(
+        world.get_location(f"ThiefNet {i:02}"),
+        make_thiefnet_rule(player, episode_items_n)
       )
-    )
 
   ### Job requirements
   for episode, sections in EPISODES.items():

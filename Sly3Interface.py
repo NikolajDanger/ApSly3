@@ -3,6 +3,7 @@ import struct
 from logging import Logger
 from enum import IntEnum
 import traceback
+from time import sleep
 
 from .pcsx2_interface.pine import Pine
 from .data.Constants import ADDRESSES, MENU_RETURN_DATA, POWER_UP_TEXT
@@ -125,6 +126,11 @@ class GameInterface():
   def _write_float(self, address: int, value: float):
     self.pcsx2_interface.write_float(address, value)
 
+  def _batch_write32(self, operations: list[tuple[int,int]]):
+    self.pcsx2_interface.batch_write_int32(operations)
+    # for address, data in operations:
+    #   self._write32(address, data)
+
   def connect_to_game(self):
     """
     Initializes the connection to PCSX2 and verifies it is connected to the
@@ -171,11 +177,12 @@ class Sly3Interface(GameInterface):
   ############################
   ## Private Helper Methods ##
   ############################
-  def _reload(self, reload_data: bytes):
-    self._write_bytes(
-      self.addresses["reload values"],
-      reload_data
-    )
+  def _reload(self, reload_data: bytes = b""):
+    if reload_data != b"":
+      self._write_bytes(
+        self.addresses["reload values"],
+        reload_data
+      )
     self._write32(self.addresses["reload"], 1)
 
   def _get_job_address(self, task: int) -> int:
@@ -197,6 +204,10 @@ class Sly3Interface(GameInterface):
         return self._read32(string_table_address+i*8+4)
       i += 1
 
+  def _job_parents_finished(self, job: int) -> bool:
+    # TODO: Job Markers
+    return True
+
   ###################
   ## Current State ##
   ###################
@@ -211,7 +222,7 @@ class Sly3Interface(GameInterface):
     return (
       not self.is_loading() and
       self.in_hub() and
-      self._read32(self.addresses["infobox string"]) in [
+      self.current_infobox() in [
         5345,5346,5347,5348,5349,5350,5351
       ]
     )
@@ -232,17 +243,17 @@ class Sly3Interface(GameInterface):
     )
 
   def showing_infobox(self) -> bool:
-    # TODO: Notifications
-    return False
+    infobox_pointer = self._read32(self.addresses["infobox"])
+    return self._read32(infobox_pointer+0x64) == 2
 
   def alive(self) -> bool:
     active_character = self._read32(self.addresses["active character pointer"])
     if active_character == 0:
       return True
 
-    health_gui = self._read32(active_character+0x16c)
+    health_gui_pointer = self._read32(active_character+0x168)
     health = self._read32(active_character+0x16c)
-    return health_gui != 2 or health != 0
+    return health_gui_pointer == 0 or health != 0
 
   #######################
   ## Getters & Setters ##
@@ -254,9 +265,11 @@ class Sly3Interface(GameInterface):
       if i not in [28,36,37,39,40,42,43]
     ][:len(data)]
 
+    operations = []
+
     for i, address in enumerate(addresses):
-      self._write32(address,data[i][0])
-      self._write32(address+0xC,0)
+      operations.append((address,data[i][0]))
+      operations.append((address+0xC,0))
       name_id = self._read32(address+0x14)
       name_address = self._find_string_address(name_id)
       self.set_text(name_address, f"Check #{i+1}")
@@ -267,7 +280,9 @@ class Sly3Interface(GameInterface):
 
     for i in [28,36,37,39,40,42,43]+list(range(len(data),44)):
       address = self.addresses["thiefnet start"]+i*0x3c
-      self._write32(address+0xC,10)
+      operations.append((address+0xC,10))
+
+    self._batch_write32(operations)
 
   def reset_thiefnet(self) -> None:
     for i in range(44):
@@ -344,12 +359,40 @@ class Sly3Interface(GameInterface):
     return PowerUps(*relevant_bits)
 
   def activate_jobs(self, job_ids: int|list[int]):
-    # TODO: Job Markers
-    pass
+    if isinstance(job_ids, int):
+      job_ids = [job_ids]
+
+    markers = self.addresses["job markers"]
+    to_read = []
+    for job in job_ids:
+      if job not in markers:
+        self.logger.debug(f"Job {job} not able to be activated")
+        continue
+
+      to_read.append(job)
+
+    statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
+    to_write = [j for i,j in enumerate(to_read) if statuses[i] == 0 and self._job_parents_finished(j)]
+    operations = [(markers[j]+0x44,1) for j in to_write]
+    self._batch_write32(operations)
 
   def deactivate_jobs(self, job_ids: int|list[int]):
-    # TODO: Job Markers
-    pass
+    if isinstance(job_ids, int):
+      job_ids = [job_ids]
+
+    markers = self.addresses["job markers"]
+    to_read = []
+    for job in job_ids:
+      if job not in markers:
+        self.logger.debug(f"Job {job} not able to be deactivated")
+        continue
+
+      to_read.append(job)
+
+    statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
+    to_write = [j for i,j in enumerate(to_read) if statuses[i] == 1]
+    operations = [(markers[j]+0x44,0) for j in to_write]
+    self._batch_write32(operations)
 
   def jobs_completed(self) -> list[bool]:
     addresses = [a for ep in self.addresses["job completed"].values() for c in ep for a in c]
@@ -358,8 +401,7 @@ class Sly3Interface(GameInterface):
     return [s != 0 for s in states]
 
   def current_infobox(self) -> int:
-    # TODO: Notifications
-    return 0
+    return self._read32(self.addresses["infobox string"])
 
   def get_damage_type(self) -> int:
     # TODO: Death Messages
@@ -368,14 +410,19 @@ class Sly3Interface(GameInterface):
   #################
   ## Other Utils ##
   #################
+  def intro_done(self) -> bool:
+    return self._read32(self.addresses["intro complete"]) != 0
+
   def to_episode_menu(self) -> None:
     self.logger.info("Skipping to episode menu")
     if (
       self.get_current_map() == 35 and
-      self.get_current_job() == 1797
+      self.get_current_job() == 1797 and
+      not self.intro_done()
     ):
       self.set_current_job(0xffffffff)
       self.set_items_received(0)
+      self._write32(self.addresses["intro complete"],1)
 
     self._reload(bytes.fromhex(MENU_RETURN_DATA))
 
@@ -394,12 +441,22 @@ class Sly3Interface(GameInterface):
     self._write32(self.addresses["coins"],new_amount)
 
   def disable_infobox(self):
-    # TODO: Notifications
-    pass
+    infobox_pointer = self._read32(self.addresses["infobox"])
+    if self._read32(infobox_pointer+0x54) != 1:
+      self._write32(infobox_pointer+0x54,2)
+      self._write32(infobox_pointer+0x54,1)
 
   def set_infobox(self, text: str):
-    # TODO: Notifications
-    pass
+    ep = self.get_current_episode()
+    if ep == 0 or self.in_safehouse():
+      return
+
+    infobox_pointer = self._read32(self.addresses["infobox"])
+    self._write32(self.addresses["infobox scrolling"],1)
+    self.set_text("infobox"," "*10+text)
+    self._write32(self.addresses["infobox string"],1)
+    self._write32(infobox_pointer+0x54,2)
+    self._write32(self.addresses["infobox duration"],0xffffffff)
 
   def kill_player(self):
     if self.in_safehouse() or self.get_current_episode() == Sly3Episode.Title_Screen:
@@ -553,6 +610,19 @@ def current_job_info(interf: Sly3Interface):
   print("Job index:", i)
   print("Job state (should be 2):", interf._read32(address+0x44))
 
+def active_jobs_info(interf: Sly3Interface):
+  address = interf._read32(interf.addresses["DAG root"])
+  i = 0
+  while address != 0:
+    job_pointer = interf._read32(address+0x6c)
+    job_id = interf._read32(job_pointer+0x18)
+    job_state = interf._read32(address+0x44)
+    if job_state == 1:
+      print(f"{job_id}: {hex(address)}")
+
+    address = interf._read32(address+0x20)
+    i += 1
+
 if __name__ == "__main__":
   interf = Sly3Interface(Logger("test"))
   interf.connect_to_game()
@@ -587,4 +657,17 @@ if __name__ == "__main__":
   #   print(find_string_address(interf, address))
   #   print("======")
 
-  print_thiefnet_text(interf)
+  # print(hex(find_string_id(interf, 1)))
+  # print([hex(i) for i in find_text(interf, "merges")])
+  # active_jobs_info(interf)
+  # interf.set_infobox("test")
+  # interf.disable_infobox()
+  # pointer = interf._read32(0x46F798)
+  # print(interf._read32(pointer+0x54))
+  # print(interf._read32(pointer+0x64))
+
+  # interf.to_episode_menu()
+  # print(interf.get_items_received())
+  # interf.set_items_received(28)
+  # interf._write32(interf.addresses["intro complete"], 1)
+  print(interf._read32(interf.addresses["reload"]))

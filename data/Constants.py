@@ -211,7 +211,7 @@ REQUIREMENTS = {
       [[]],
       [
         ["Binocucom"],
-        [],
+        ["Bombs"],
         ["Bentley"],
       ],
       [
@@ -227,14 +227,14 @@ REQUIREMENTS = {
     "Rumble Down Under" :[
       [[]],
       [
-        ["Murray"],
+        ["Murray", "Ball Form"],
         [],
-        [],
-        ["Guru"],
+        ["Murray", "Ball Form"],
+        ["Bentley", "Murray", "Ball Form", "Guru"],
       ],
       [
         [],
-        ["Bentley"],
+        [],
         []
       ],
       [[]]
@@ -244,10 +244,10 @@ REQUIREMENTS = {
         ["Bentley"]
       ],
       [
-        ["Murray", "Bentley", "Guru", "Fishing Pole"],
+        ["Murray", "Guru", "Fishing Pole"],
         ["Murray"],
-        ["Penelope"],
-        ["Murray", "Bentley", "Guru", "Fishing Pole", "Penelope"]
+        ["Murray","Penelope"],
+        ["Murray", "Guru", "Fishing Pole", "Penelope"]
       ],
       [
         ["Binocucom"],
@@ -293,6 +293,18 @@ REQUIREMENTS = {
         ["Guru"]
       ]
     ],
+    "Honor Among Thieves": [
+      [
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+      ]
+    ],
   },
   "Challenges": {
     "An Opera of Fear": [
@@ -317,8 +329,8 @@ REQUIREMENTS = {
       [
         [],
         [],
-        [],
-        ["Guru"]
+        ["Murray", "Ball Form"],
+        ["Murray", "Ball Form", "Guru"]
       ],
       [
         [],
@@ -331,12 +343,14 @@ REQUIREMENTS = {
       ]
     ],
     "Flight of Fancy": [
-      [[]],
       [
-        ["Penelope"],
-        ["Penelope"],
-        ["Penelope"],
-        ["Murray", "Bentley", "Guru", "Fishing Pole", "Penelope"],
+        ["Bentley"]
+      ],
+      [
+        ["Murray", "Penelope"],
+        ["Murray", "Penelope"],
+        ["Murray", "Penelope"],
+        ["Murray", "Guru", "Fishing Pole", "Penelope"],
       ],
       [
         [],
@@ -373,6 +387,15 @@ REQUIREMENTS = {
       ],
       [],
       [[]]
+    ],
+    "Honor Among Thieves": [
+      [
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+      ]
     ],
   }
 }
@@ -429,6 +452,7 @@ ADDRESSES = {
     "gadgets": 0x468DCC,
     "coins": 0x468DDC,
     "DAG root": 0x478C8C,
+    "intro complete": 0x468EEC,
     "job completed": {
       "An Opera of Fear": [
         [
@@ -537,8 +561,42 @@ ADDRESSES = {
         ]
       ],
     },
+    "job markers": {
+      2085: 0x1335d10,
+      2230: 0x1350560,
+      2283: 0x1357f80,
+      2329: 0x135aba0,
+      2139: 0x1330c40,
+      2168: 0x1335dc0,
+      2187: 0x133e9b0,
+      2352: 0x1351520,
+      2419: 0x135e550,
+      2577: 0x6b4250,
+      2596: 0x6b80f0,
+      2805: 0x6d0770,
+      2695: 0x5d26f0,
+      2663: 0x6bdaf0,
+      2623: 0x5caa20,
+      2730: 0x5fe390,
+      2780: 0x6ca940,
+      2843: 0x6d4330,
+      2983: 0x794360,
+      3025: 0x627a60,
+      3061: 0x62c7b0,
+      3101: 0x630220,
+      3140: 0xecb450,
+      3202: 0x642a90,
+      3164: 0x63b4d0,
+      3225: 0x7adf50,
+      3259: 0x651eb0
+    },
     "active character pointer": 0x36F84C,
+    "infobox scrolling": 0x46F780,
     "infobox string": 0x46F788,
+    "infobox duration": 0x46F78C,
+    "infobox": 0x46F798,
+    # "infobox": 0x47671C,
+    # "infobox": 0x479758,
     "thiefnet start": 0x343208,
     "string table": 0x47A2D8,
     "text": {
@@ -551,6 +609,14 @@ ADDRESSES = {
       "A Cold Alliance": 0x53b710,
       "Dead Men Tell No Tales": 0x53b7b0,
       "Honor Among Thieves": 0x53b900,
+      "infobox": {
+        3: 0x5765d0,
+        8: 0x564170,
+        15: 0x579ec0,
+        23: 0x579ec0,
+        31: 0x0,
+        35: 0x0,
+      },
     }
   }
 }

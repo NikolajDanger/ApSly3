@@ -3,11 +3,12 @@ import asyncio
 import multiprocessing
 import traceback
 
-from .data import Items, Locations
-from .data.Constants import EPISODES, CHALLENGES
 from CommonClient import logger, server_loop, gui_enabled, get_base_parser
+from BaseClasses import ItemClassification
 import Utils
 
+from .data import Items, Locations
+from .data.Constants import EPISODES, CHALLENGES, REQUIREMENTS
 from .Sly3Interface import Sly3Interface, Sly3Episode, PowerUps
 from .Sly3Callbacks import init, update
 
@@ -44,10 +45,20 @@ class Sly3CommandProcessor(ClientCommandProcessor): # type: ignore[misc]
     if isinstance(self.ctx, Sly3Context):
       self.ctx.game_interface.to_episode_menu()
 
+  def _cmd_reload(self):
+    """Reload (in case you're stuck)"""
+    if isinstance(self.ctx, Sly3Context):
+      self.ctx.game_interface._reload()
+
   def _cmd_coins(self, amount: str):
     """Add coins to game."""
     if isinstance(self.ctx, Sly3Context):
       self.ctx.game_interface.add_coins(int(amount))
+
+  def _cmd_notification(self, text: str):
+    """Add coins to game."""
+    if isinstance(self.ctx, Sly3Context):
+      self.ctx.notification(text)
 
 class Sly3Context(CommonContext): # type: ignore[misc]
   command_processor = Sly3CommandProcessor
@@ -115,7 +126,135 @@ class Sly3Context(CommonContext): # type: ignore[misc]
 
     # AP version is added behind this automatically
     ui.base_title += " | Archipelago"
-    return ui
+
+    # Making the out of logic tab
+    from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.label import Label
+    from kivy.uix.scrollview import ScrollView
+    from kivy.metrics import dp
+
+    def make_left_label(**kwargs):
+      lbl = Label(**kwargs)
+      lbl.bind(width=lambda instance, value: setattr(instance, 'text_size', (value, None)))  # type: ignore
+      lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))  # type: ignore
+      return lbl
+
+    container = BoxLayout(
+      orientation='vertical',
+      padding=dp(10),
+      spacing=dp(8),
+      size_hint_y=None,
+    )
+    container.bind(minimum_height=container.setter('height')) # type: ignore
+
+    container.add_widget(Label(
+      text="Out of logic locations and their required progression items",
+      font_size=dp(16),
+      bold=True,
+      size_hint_y=None,
+      height=dp(40),
+      halign="center",
+      valign="middle",
+    ))
+
+    container.add_widget(make_left_label(
+      text="Jobs",
+      font_size=dp(14),
+      bold=True,
+      size_hint_y=None,
+      height=dp(30),
+      halign="left",
+      valign="bottom",
+    ))
+    self.jobs_label = make_left_label(
+      size_hint_y=None,
+      halign="left",
+      valign="top",
+    )
+    container.add_widget(self.jobs_label)
+
+    container.add_widget(make_left_label(
+      text="Master Thief Challenges",
+      font_size=dp(14),
+      bold=True,
+      size_hint_y=None,
+      height=dp(30),
+      halign="left",
+      valign="bottom",
+    ))
+    self.challenges_label = make_left_label(
+      size_hint_y=None,
+      halign="left",
+      valign="top",
+    )
+    container.add_widget(self.challenges_label)
+
+    scroll = ScrollView(size_hint=(1, 1))
+    scroll.add_widget(container)
+    self.out_of_logic_tab = scroll
+
+    class Manager(ui):
+      def build(self):
+        super().build()
+        self.add_client_tab("Out-of-Logic", self.ctx.out_of_logic_tab)
+        return self.container
+
+    return Manager
+
+  def update_gui(self):
+    received_items = [Items.from_id(i.item) for i in self.items_received]
+    progression_items = [i.name for i in received_items if i.classification == ItemClassification.progression]
+
+    section_requirements = {
+      episode_name: [
+        list(set(sum([
+          sum(
+            ep_reqs,
+            []
+          )
+          for ep_reqs
+          in episode[:i-1]
+        ], [])))
+        for i in range(1,5)
+      ]
+      for episode_name, episode in REQUIREMENTS["Jobs"].items()
+    }
+
+    # Jobs
+    jobs = [
+      f"{ep_name} - {job}"
+      for ep_name, ep in EPISODES.items() for chapter in ep for job in chapter
+    ]
+    job_requirements = [
+      [r for r in reqs+section_requirements[ep_name][chapter_idx] if r not in progression_items]
+      for ep_name, ep in REQUIREMENTS["Jobs"].items()
+      for chapter_idx, chapter in enumerate(ep) for reqs in chapter
+    ]
+    job_pairs = zip(jobs,job_requirements)
+
+    self.jobs_label.text = "\n".join([
+      f"{job}:    {', '.join(reqs)}"
+      for job, reqs in job_pairs
+      if reqs != []
+    ])
+
+    # Challenges
+    challenges = [
+      f"{ep_name} - {challenge}"
+      for ep_name, ep in CHALLENGES.items() for chapter in ep for challenge in chapter
+    ]
+    challenge_requirements = [
+      sorted([r for r in list(set(reqs+section_requirements[ep_name][chapter_idx])) if r not in progression_items])
+      for ep_name, ep in REQUIREMENTS["Challenges"].items()
+      for chapter_idx, chapter in enumerate(ep) for reqs in chapter
+    ]
+    challenge_pairs = zip(challenges,challenge_requirements)
+
+    self.challenges_label.text = "\n".join([
+      f"{challenge}:    {', '.join(reqs)}"
+      for challenge, reqs in challenge_pairs
+      if reqs != []
+    ])
 
   # async def server_auth(self, password_requested: bool = False) -> None:
   #   if password_requested and not self.password:
@@ -150,10 +289,12 @@ class Sly3Context(CommonContext): # type: ignore[misc]
           for i in range(args["slot_data"]["thiefnet_locations"])
         ]
       }]))
+      self.update_gui()
+    if cmd in ["RoomUpdate", "ReceivedItems"]:
+      self.update_gui()
 
   def notification(self, text: str):
-    # TODO: Notifications
-    pass
+    self.notification_queue.append(text)
 
 def update_connection_status(ctx: Sly3Context, status: bool):
   if ctx.is_connected_to_game == status:

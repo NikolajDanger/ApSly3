@@ -14,8 +14,10 @@ class StartingEpisode(Choice):
   """
   Select Which episode to start with.
 
-  Flight of Fancy, A Cold Alliance and Dead Men Tell No Tales require starting
-  items, so starting with them will break a solo game.
+  Flight of Fancy and Dead Men Tell No Tales require items to do the first
+  jobs, meaning you'll only have ThiefNet in logic.
+  A Cold Alliance also requires items to even have ThiefNet in logic, so if you
+  start with that episode, you will start with no locations in logic.
   """
 
   display_name = "Starting Episode"
