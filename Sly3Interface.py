@@ -357,7 +357,7 @@ class Sly3Interface(GameInterface):
 
     if powerups.hover_pack:
       bentley = self._read32(self.addresses["bentley"])
-      self._write32(bentley+0x4b0,0)
+      self._write32(bentley+0x4b0,3)
 
   def get_powerups(self):
     data = self._read_bytes(self.addresses["gadgets"], 8)
