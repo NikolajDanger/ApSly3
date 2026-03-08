@@ -104,7 +104,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
 
   def __init__(self, server_address, password):
     super().__init__(server_address, password)
-    self.version = [0,1,0]
+    self.version = [0,1,1]
     self.game_interface = Sly3Interface(logger)
     self.available_episodes[Sly3Episode.Title_Screen] = True
 
@@ -270,12 +270,12 @@ class Sly3Context(CommonContext): # type: ignore[misc]
       if self.version[:2] != args["slot_data"]["world_version"][:2]:
         raise Exception(f"World generation version and client version don't match up. The world was generated with version {args["slot_data"]["world_version"]}, but the client is version {self.version}")
 
-      thiefnet_n = args["slot_data"]["thiefnet_locations"]
+      # thiefnet_n = args["slot_data"]["thiefnet_locations"]
       skipped_indices = set([28,36,37,39,40,42,43])
-      total_length = thiefnet_n+len(skipped_indices)
+      total_length = 37+len(skipped_indices)
       val_iter = iter([
         Locations.location_dict[f"ThiefNet {i+1:02}"].code in self.checked_locations
-        for i in range(thiefnet_n)
+        for i in range(37)
       ])
       self.thiefnet_purchases = PowerUps(*[False]*4+[
         False if i in skipped_indices else next(val_iter)

@@ -142,10 +142,10 @@ async def set_thiefnet(ctx: "Sly3Context"):
       ctx.thiefnet_items.append(string)
 
   skipped_indices = set([28,36,37,39,40,42,43])
-  total_length = thiefnet_n+len(skipped_indices)
+  total_length = 37+len(skipped_indices)
   val_iter = iter([
     Locations.location_dict[f"ThiefNet {i+1:02}"].code in ctx.checked_locations
-    for i in range(thiefnet_n)
+    for i in range(37)
   ])
   ctx.thiefnet_purchases = PowerUps(*[False]*4+[
     False if i in skipped_indices else next(val_iter)
