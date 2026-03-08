@@ -356,8 +356,13 @@ class Sly3Interface(GameInterface):
     self._write32(self.addresses["grapple-cam weapon"],1)
 
     if powerups.hover_pack:
-      bentley = self._read32(self.addresses["bentley"])
-      self._write32(bentley+0x4b0,3)
+      jumps = 3
+    else:
+      jumps = 1
+
+    bentley = self._read32(self.addresses["bentley"])
+    if bentley != 0:
+      self._write32(bentley+0x4b0,jumps)
 
   def get_powerups(self):
     data = self._read_bytes(self.addresses["gadgets"], 8)
