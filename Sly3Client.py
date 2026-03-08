@@ -214,7 +214,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
           )
           for ep_reqs
           in episode[:i-1]
-        ], [])))
+        ], [])))+[episode_name]
         for i in range(1,5)
       ]
       for episode_name, episode in REQUIREMENTS["Jobs"].items()
@@ -270,9 +270,16 @@ class Sly3Context(CommonContext): # type: ignore[misc]
       if self.version[:2] != args["slot_data"]["world_version"][:2]:
         raise Exception(f"World generation version and client version don't match up. The world was generated with version {args["slot_data"]["world_version"]}, but the client is version {self.version}")
 
-      self.thiefnet_purchases = PowerUps(*[
+      thiefnet_n = args["slot_data"]["thiefnet_locations"]
+      skipped_indices = set([28,36,37,39,40,42,43])
+      total_length = thiefnet_n+len(skipped_indices)
+      val_iter = iter([
         Locations.location_dict[f"ThiefNet {i+1:02}"].code in self.checked_locations
-        for i in range(24)
+        for i in range(thiefnet_n)
+      ])
+      self.thiefnet_purchases = PowerUps(*[False]*4+[
+        False if i in skipped_indices else next(val_iter)
+        for i in range(total_length)
       ])
 
       # Set death link tag if it was requested in options

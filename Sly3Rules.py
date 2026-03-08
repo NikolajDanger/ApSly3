@@ -49,9 +49,6 @@ def set_rules_sly3(world: "Sly3World"):
 
   ### Job requirements
   for episode, sections in EPISODES.items():
-    if episode == "Honor Among Thieves":
-      continue
-
     for i, s in enumerate(sections):
       for j, job in enumerate(s):
         reqs = REQUIREMENTS["Jobs"][episode][i][j]
@@ -64,9 +61,6 @@ def set_rules_sly3(world: "Sly3World"):
 
   ### Challenge requirements
   for episode, sections in CHALLENGES.items():
-    if episode == "Honor Among Thieves":
-      continue
-
     for i, s in enumerate(sections):
       for j, challenge in enumerate(s):
         reqs = REQUIREMENTS["Challenges"][episode][i][j]

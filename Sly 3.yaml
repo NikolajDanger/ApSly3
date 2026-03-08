@@ -1,0 +1,186 @@
+﻿name: Player{number}
+
+# Used to describe your yaml. Useful if you have multiple files.
+description: 'Default Sly 3: Honor Among Thieves Template'
+
+game: 'Sly 3: Honor Among Thieves'
+requires:
+  version: 0.6.6 # Version of Archipelago required for this yaml to work as expected.
+  game:
+    'Sly 3: Honor Among Thieves': 0.0.0 # Version of the world required for this yaml to work as expected.
+
+'Sly 3: Honor Among Thieves':
+  ################
+  # Game Options #
+  ################
+
+  # A system that can move progression earlier, to try and prevent the player from getting stuck and bored early.
+  #
+  # A lower setting means more getting stuck. A higher setting means less getting stuck.
+  #
+  # You can define additional values between the minimum and maximum values.
+  # Minimum value is 0
+  # Maximum value is 99
+  progression_balancing:
+    random: 0
+    random-low: 0 # random value weighted towards lower values
+    random-high: 0 # random value weighted towards higher values
+    random-range-0-99: 0 # random value between 0 and 99
+    disabled: 0 # equivalent to 0
+    normal: 50 # equivalent to 50
+    extreme: 0 # equivalent to 99
+
+  # Set rules for reachability of your items/locations.
+  #
+  # **Full:** ensure everything can be reached and acquired.
+  #
+  # **Minimal:** ensure what is needed to reach your goal can be acquired.
+  accessibility:
+    full: 50
+    minimal: 0
+
+  # When you die, everyone who enabled death link dies. Of course, the reverse is true too.
+  death_link:
+    'false': 50
+    'true': 0
+
+  # Select Which episode to start with.
+  #
+  # Flight of Fancy and Dead Men Tell No Tales require items to do the first
+  # jobs, meaning you'll only have ThiefNet locations in logic.
+  # A Cold Alliance also requires items to have even ThiefNet in logic, so if you
+  # start with that episode, you will start with no locations in logic.
+  # (This breaks solo games)
+  starting_episode:
+    an_opera_of_fear: 50
+    rumble_down_under: 0
+    flight_of_fancy: 0
+    a_cold_alliance: 0
+    dead_men_tell_no_tales: 0
+
+  ########
+  # Goal #
+  ########
+  # Which boss you must defeat to goal.
+  goal:
+    don_octavio: 0
+    dark_mask: 0
+    black_baron: 0
+    general_tsao: 0
+    captain_lefwee: 0
+    dr_m: 50
+    all_bosses: 0
+
+  #########
+  # Items #
+  #########
+  # Which crew member, in addition to Sly, you start with.
+  bonus_crew_member:
+    none: 0
+    bentley: 50
+    murray: 0
+    guru: 0
+    penelope: 0
+    panda_king: 0
+    dimitri: 0
+    carmelita: 0
+
+  # Start with the ability to use the binocucom, rather than shuffling it into
+  # the pool.
+  start_with_binocucom:
+    'false': 0
+    'true': 50
+
+  # Start with Bentley's bombs, rather than shuffling it into the pool.
+  start_with_bombs:
+    'false': 0
+    'true': 50
+
+  # Add the Mega Jump ability to the pool.
+  include_mega_jump:
+    'false': 50
+    'true': 0
+
+  # The minimum number of coins you'll receive when you get a "Coins" filler
+  # item.
+  #
+  # You can define additional values between the minimum and maximum values.
+  # Minimum value is 0
+  # Maximum value is 1000
+  coins_minimum:
+    50: 50
+    random: 0
+    random-low: 0 # random value weighted towards lower values
+    random-high: 0 # random value weighted towards higher values
+    random-range-0-1000: 0 # random value between 0 and 1000
+
+  # The maximum number of coins you'll receive when you get a "Coins" filler
+  # item.
+  #
+  # You can define additional values between the minimum and maximum values.
+  # Minimum value is 0
+  # Maximum value is 1000
+  coins_maximum:
+    200: 50
+    random: 0
+    random-low: 0 # random value weighted towards lower values
+    random-high: 0 # random value weighted towards higher values
+    random-range-0-1000: 0 # random value between 0 and 1000
+
+  #############
+  # Locations #
+  #############
+  # The number ThiefNet locations.
+  #
+  # You can define additional values between the minimum and maximum values.
+  # Minimum value is 0
+  # Maximum value is 37
+  thiefnet_locations:
+    20: 50
+    random: 0
+    random-low: 0 # random value weighted towards lower values
+    random-high: 0 # random value weighted towards higher values
+    random-range-0-37: 0 # random value between 0 and 37
+
+  # The minimum number of coins items on ThiefNet will cost.
+  #
+  # You can define additional values between the minimum and maximum values.
+  # Minimum value is 0
+  # Maximum value is 9999
+  thiefnet_minimum:
+    200: 50
+    random: 0
+    random-low: 0 # random value weighted towards lower values
+    random-high: 0 # random value weighted towards higher values
+    random-range-0-9999: 0 # random value between 0 and 9999
+
+  # The maximum number of coins items on ThiefNet will cost.
+  #
+  # You can define additional values between the minimum and maximum values.
+  # Minimum value is 0
+  # Maximum value is 9999
+  thiefnet_maximum:
+    2000: 50
+    random: 0
+    random-low: 0 # random value weighted towards lower values
+    random-high: 0 # random value weighted towards higher values
+    random-range-0-9999: 0 # random value between 0 and 9999
+
+  # Whether to scout/hint ThiefNet checks. They will still be displayed in game.
+  scout_thiefnet:
+    'false': 0
+    'true': 50
+
+  ###########################
+  # Item & Location Options #
+  ###########################
+  local_items: []
+  non_local_items: []
+  start_inventory: {}
+  start_inventory_from_pool: {}
+  start_hints: []
+  start_location_hints: []
+  exclude_locations: []
+  priority_locations: []
+  item_links: []
+  plando_items: []

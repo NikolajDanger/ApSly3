@@ -15,16 +15,24 @@ def gen_powerups(world: "Sly3World") -> list[Item]:
     if item_name == "Mega Jump" and not world.options.include_mega_jump:
       continue
     elif item_name == "Progressive Shadow Power":
-      powerups.append(world.create_item(item_name))
-      powerups.append(world.create_item(item_name))
+      powerups.append(item_name)
+      powerups.append(item_name)
     elif item_name[:11] == "Progressive":
-      powerups.append(world.create_item(item_name))
-      powerups.append(world.create_item(item_name))
-      powerups.append(world.create_item(item_name))
+      powerups.append(item_name)
+      powerups.append(item_name)
+      powerups.append(item_name)
     else:
-      powerups.append(world.create_item(item_name))
+      powerups.append(item_name)
 
-  return powerups
+  if world.options.start_with_binocucom:
+    powerups.remove("Binocucom")
+    world.multiworld.push_precollected(world.create_item("Binocucom"))
+
+  if world.options.start_with_bombs:
+    powerups.remove("Bombs")
+    world.multiworld.push_precollected(world.create_item("Bombs"))
+
+  return [world.create_item(c) for c in powerups]
 
 def gen_crew(world: "Sly3World") -> list[Item]:
   """Generate the crew for the item pool"""

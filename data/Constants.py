@@ -260,7 +260,7 @@ REQUIREMENTS = {
     ],
     "A Cold Alliance": [
       [
-        ["Bentley", "Murray", "Guru", "Penelope", "Binocucom"]
+        ["Bentley", "Murray", "Guru", "Penelope", "Binocucom", "Ball Form"]
       ],
       [
         ["Disguise (Photographer)"],
@@ -280,7 +280,7 @@ REQUIREMENTS = {
         ["Disguise (Pirate)"]
       ],
       [
-        ["Bentley", "Penelope", "Grapple-Cam"],
+        ["Bentley", "Penelope", "Grapple-Cam", "Bombs"],
         ["Murray"],
         ["Bentley", "Penelope", "Grapple-Cam", "Murray", "Silent Obliteration", "Treasure Map"]
       ],
@@ -299,10 +299,10 @@ REQUIREMENTS = {
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
       ]
     ],
   },
@@ -319,9 +319,9 @@ REQUIREMENTS = {
       ],
       [
         ["Bombs"],
-        [],
-        [],
-        ["Treasure Map"]
+        ["Bombs"],
+        ["Bombs"],
+        ["Bombs", "Treasure Map"]
       ]
     ],
     "Rumble Down Under" :[
@@ -358,7 +358,7 @@ REQUIREMENTS = {
       ],
       [
         ["Paraglider"],
-        ["Treasure Map"]
+        ["Paraglider", "Treasure Map"]
       ]
     ],
     "A Cold Alliance": [
@@ -367,9 +367,8 @@ REQUIREMENTS = {
       ],
       [
         ["Panda King"],
-        [],
-        [],
-        []
+        ["Disguise (Photographer)", "Panda King", "Grapple-Cam"],
+        ["Disguise (Photographer)", "Panda King", "Grapple-Cam"]
       ],
       [],
       [
@@ -386,15 +385,17 @@ REQUIREMENTS = {
         ["Bentley", "Penelope", "Grapple-Cam", "Murray", "Silent Obliteration", "Treasure Map"]
       ],
       [],
-      [[]]
+      [
+        ["Guru"]
+      ]
     ],
     "Honor Among Thieves": [
       [
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
       ]
     ],
   }
@@ -438,7 +439,8 @@ JOB_IDS = {
 
 ADDRESSES = {
   "SCUS-97464" : {
-    "items received": 0x4695A0,
+    "bentley": 0x36B250,
+    "items received": 0x46E250,
     "world id": 0x468D30,
     "map id": 0x47989C,
     "job id": 0x36DB98,
@@ -452,7 +454,8 @@ ADDRESSES = {
     "gadgets": 0x468DCC,
     "coins": 0x468DDC,
     "DAG root": 0x478C8C,
-    "intro complete": 0x468EEC,
+    "intro complete": 0x46E260,
+    "grapple-cam weapon": 0x468DD8,
     "job completed": {
       "An Opera of Fear": [
         [
@@ -497,8 +500,8 @@ ADDRESSES = {
           0x46916C,
         ],
         [
-          0x4690DC,
           0x4690EC,
+          0x4690DC,
           0x46910C,
           0x46917C,
         ],
@@ -561,6 +564,101 @@ ADDRESSES = {
         ]
       ],
     },
+    "challenge completed": {
+      "An Opera of Fear": [
+        [],
+        [
+          0x46DF30
+        ],
+        [
+          0x46DF20,
+          0x46DF98,
+          0x46DF90,
+        ],
+        [
+          0x46DF60,
+          0x46DF70,
+          0x46DF68,
+          0x46DF78
+        ]
+      ],
+      "Rumble Down Under": [
+        [
+          0x46E028
+        ],
+        [
+          0x46DFC8,
+          0x46DFD0,
+          0x46DFF0,
+          0x46E038
+        ],
+        [
+          0x46DFE0,
+          0x46DFB0,
+          0x46E000
+        ],
+        [
+          0x46E010,
+          0x46E018
+        ]
+      ],
+      "Flight of Fancy": [
+        [
+          0x46E0B0
+        ],
+        [
+          0x46E068,
+          0x46E078,
+          0x46E070,
+          0x46E0C0
+        ],
+        [
+          0x46E0D8,
+          0x46E0A0,
+        ],
+        [
+          0x46E088,
+          0x46E090
+        ]
+      ],
+      "A Cold Alliance": [
+        [
+          0x46E100
+        ],
+        [
+          0x46E138,
+          0x46E128,
+          0x46E120
+        ],
+        [],
+        [
+          0x46E0F8
+        ]
+      ],
+      "Dead Men Tell No Tales": [
+        [
+          0x46E1B0,
+          0x46E1B8
+        ],
+        [
+          0x46E190,
+          0x46E160
+        ],
+        [],
+        [
+          0x46E1A0
+        ]
+      ],
+      "Honor Among Thieves": [
+        [
+          0x46E210,
+          0x46E1F8,
+          0x46E1D8,
+          0x46E220,
+          0x46E1E8
+        ]
+      ]
+    },
     "job markers": {
       2085: 0x1335d10,
       2230: 0x1350560,
@@ -571,15 +669,17 @@ ADDRESSES = {
       2187: 0x133e9b0,
       2352: 0x1351520,
       2419: 0x135e550,
+
       2577: 0x6b4250,
       2596: 0x6b80f0,
       2805: 0x6d0770,
-      2695: 0x5d26f0,
+      2695: 0x6c3eb0,
       2663: 0x6bdaf0,
-      2623: 0x5caa20,
-      2730: 0x5fe390,
-      2780: 0x6ca940,
+      2623: 0x6bb070,
+      2730: 0x6c5fb0,
+      2780: 0x6ca1c0,
       2843: 0x6d4330,
+
       2983: 0x794360,
       3025: 0x627a60,
       3061: 0x62c7b0,
@@ -588,7 +688,76 @@ ADDRESSES = {
       3202: 0x642a90,
       3164: 0x63b4d0,
       3225: 0x7adf50,
-      3259: 0x651eb0
+      3259: 0x651eb0,
+
+      3381: 0x1614110,
+      3449: 0x1618740,
+      3509: 0x16200f0,
+      3540: 0x1625780,
+      3584: 0x162b770,
+      3629: 0x1630060,
+      3672: 0x16377e0,
+      3684: 0x163a930,
+      3712: 0x1641a30,
+
+      3848: 0x7672e0,
+      3907: 0x7743d0,
+      4038: 0x78d440,
+      3991: 0x788780,
+      4071: 0x602a30,
+      4101: 0x60e0c0,
+      4120: 0x60fa80,
+      4145: 0x6126c0,
+    },
+    "job states": {
+      2085: 0x46A688,
+      2230: 0x46A0E8,
+      2283: 0x46A2B4,
+      2329: 0x469E54,
+      2139: 0x46A8E0,
+      2168: 0x469DF0,
+      2187: 0x46A7B4,
+      2352: 0x46A098,
+      2419: 0x46A50C,
+
+      2577: 0x46B150,
+      2596: 0x46AA5C,
+      2805: 0x46AB88,
+      2695: 0x46AD54,
+      2663: 0x46B204,
+      2623: 0x46ABEC,
+      2730: 0x46A980,
+      2780: 0x46AE58,
+      2843: 0x46AFC0,
+
+      2983: 0x46BB3C,
+      3025: 0x46B5B0,
+      3061: 0x46B3D0,
+      3101: 0x46B718,
+      3140: 0x46BC04,
+      3202: 0x46BE34,
+      3164: 0x46BDBC,
+      3225: 0x46BA74,
+      3259: 0x46B920,
+
+      3381: 0x46C5B4,
+      3449: 0x46BF60,
+      3509: 0x46C938,
+      3540: 0x46CA00,
+      3584: 0x46C80C,
+      3629: 0x46CB7C,
+      3672: 0x46C4EC,
+      3684: 0x46BEC0,
+      3712: 0x46C370,
+
+      3848: 0x46D590,
+      3907: 0x46D158,
+      4038: 0x46D0CC,
+      3991: 0x46D770,
+      4071: 0x46D694,
+      4101: 0x46CE38,
+      4120: 0x46CCD0,
+      4145: 0x46CEC4,
     },
     "active character pointer": 0x36F84C,
     "infobox scrolling": 0x46F780,
@@ -613,9 +782,10 @@ ADDRESSES = {
         3: 0x5765d0,
         8: 0x564170,
         15: 0x579ec0,
-        23: 0x579ec0,
-        31: 0x0,
-        35: 0x0,
+        23: 0x56fa80,
+        31: 0x57a860,
+        32: 0x57a470,
+        35: 0x561a40,
       },
     }
   }

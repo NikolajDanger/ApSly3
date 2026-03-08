@@ -15,8 +15,8 @@ class StartingEpisode(Choice):
   Select Which episode to start with.
 
   Flight of Fancy and Dead Men Tell No Tales require items to do the first
-  jobs, meaning you'll only have ThiefNet in logic.
-  A Cold Alliance also requires items to even have ThiefNet in logic, so if you
+  jobs, meaning you'll only have ThiefNet locations in logic.
+  A Cold Alliance also requires items to have even ThiefNet in logic, so if you
   start with that episode, you will start with no locations in logic.
   """
 
@@ -64,6 +64,23 @@ class IncludeMegaJump(Toggle):
   """
 
   display_name = "Include Mega Jump"
+
+
+class StartWithBinocucom(DefaultOnToggle):
+  """
+  Start with the ability to use the binocucom, rather than shuffling it into
+  the pool.
+  """
+
+  display_name = "Start with Binocucom"
+
+
+class StartWithBombs(DefaultOnToggle):
+  """
+  Start with Bentley's bombs, rather than shuffling it into the pool.
+  """
+
+  display_name = "Start with Bombs"
 
 
 class CoinsMinimum(Range):
@@ -141,6 +158,8 @@ class Sly3Options(PerGameCommonOptions):
   thiefnet_minimum: ThiefNetCostMinimum
   thiefnet_maximum: ThiefNetCostMaximum
   bonus_crew_member: BonusCrewMember
+  start_with_binocucom: StartWithBinocucom
+  start_with_bombs: StartWithBombs
   scout_thiefnet: ScoutThiefnet
 
 sly3_option_groups = [
@@ -149,6 +168,8 @@ sly3_option_groups = [
   ]),
   OptionGroup("Items",[
     BonusCrewMember,
+    StartWithBinocucom,
+    StartWithBombs,
     IncludeMegaJump,
     CoinsMinimum,
     CoinsMaximum

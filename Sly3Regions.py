@@ -18,17 +18,17 @@ def create_access_rule(episode: str, n: int, options: "Sly3Options", player: int
     else:
       access = access and state.count(episode, player) == 1
 
-      if n > 1:
-        section_requirements = [
-          sum(
-            ep_reqs,
-            []
-          )
-          for ep_reqs
-          in REQUIREMENTS["Jobs"][episode][:n-1]
-        ]
-        requirements = list(set(sum(section_requirements, [])))
-        access = access and all(state.has(i, player) for i in requirements)
+    if n > 1:
+      section_requirements = [
+        sum(
+          ep_reqs,
+          []
+        )
+        for ep_reqs
+        in REQUIREMENTS["Jobs"][episode][:n-1]
+      ]
+      requirements = list(set(sum(section_requirements, [])))
+      access = access and all(state.has(i, player) for i in requirements)
 
     return access
 

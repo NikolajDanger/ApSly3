@@ -6,7 +6,7 @@ import traceback
 from time import sleep
 
 from .pcsx2_interface.pine import Pine
-from .data.Constants import ADDRESSES, MENU_RETURN_DATA, POWER_UP_TEXT
+from .data.Constants import ADDRESSES, MENU_RETURN_DATA, POWER_UP_TEXT, JOB_IDS, EPISODES
 
 class Sly3Episode(IntEnum):
   Title_Screen = 0
@@ -58,10 +58,10 @@ class PowerUps(NamedTuple):
   rocket_boots: bool = False
   treasure_map: bool = False
   shield: bool = False
-  venice_disguise: bool = False
-  photographer_disguise: bool = False
+  disguise_venice: bool = False
+  disguise_photographer: bool = False
 
-  pirate_disguise: bool = False
+  disguise_pirate: bool = False
   spin_1: bool = False
   spin_2: bool = False
   spin_3: bool = False
@@ -185,13 +185,6 @@ class Sly3Interface(GameInterface):
       )
     self._write32(self.addresses["reload"], 1)
 
-  def _get_job_address(self, task: int) -> int:
-    pointer = self._read32(self.addresses["DAG root"])
-    for _ in range(task):
-      pointer = self._read32(pointer+0x20)
-
-    return pointer
-
   def _find_string_address(self, _id: int) -> int:
     # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
     # address to the string
@@ -204,9 +197,18 @@ class Sly3Interface(GameInterface):
         return self._read32(string_table_address+i*8+4)
       i += 1
 
+  def _get_task_parents(self, job: int) -> list[int]:
+    address = self.addresses["job markers"][job]
+    parents_n = self._read32(address+0x84)
+    parents_list = self._read32(address+0x88)
+    parent_pointers = [parents_list+4*i for i in range(parents_n)]
+    return self._batch_read32(parent_pointers)
+
   def _job_parents_finished(self, job: int) -> bool:
-    # TODO: Job Markers
-    return True
+    parents = self._get_task_parents(job)
+    return all([
+      s == 3 for s in self._batch_read32([p+0x44 for p in parents])
+    ])
 
   ###################
   ## Current State ##
@@ -228,19 +230,20 @@ class Sly3Interface(GameInterface):
     )
 
   def in_hub(self) -> bool:
-    return self.get_current_map() in [3,8,15,23,31,35]
+    return self.get_current_map() in [3,8,15,23,31,32,35]
 
   def is_goaled(self, goal: int) -> bool:
-    # TODO: Goal
+    goal_jobs = [ep[-1][-1] for ep in self.addresses["job completed"].values()]
+    if goal < 6:
+      return self._read32(goal_jobs[goal]) != 0
+    elif goal == 6:
+      return all([s != 0 for s in self._batch_read32(goal_jobs)])
     return False
 
   def is_game_started(self) -> bool:
-    world_id = self.get_current_episode()
-    map_id = self.get_current_map()
-    return not (
-      world_id == 0 and
-      map_id in [35,0xffffffff]
-    )
+    # world_id = self.get_current_episode()
+    # map_id = self.get_current_map()
+    return self.intro_done()
 
   def showing_infobox(self) -> bool:
     infobox_pointer = self._read32(self.addresses["infobox"])
@@ -259,11 +262,15 @@ class Sly3Interface(GameInterface):
   ## Getters & Setters ##
   #######################
   def set_thiefnet(self, data: list[tuple[int,str]]) -> None:
+    thiefnet_indices = set([
+      i for i in range(44)
+      if i not in [28,36,37,39,40,42,43]
+    ][:len(data)])
     addresses = [
       self.addresses["thiefnet start"]+i*0x3c
-      for i in range(44)
-      if i not in [28,36,37,39,40,42,43]
+      for i in thiefnet_indices
     ][:len(data)]
+    not_thiefnet = set(range(44)) - thiefnet_indices
 
     operations = []
 
@@ -278,7 +285,7 @@ class Sly3Interface(GameInterface):
       description_address = self._find_string_address(description_id)
       self.set_text(description_address, data[i][1])
 
-    for i in [28,36,37,39,40,42,43]+list(range(len(data),44)):
+    for i in not_thiefnet:
       address = self.addresses["thiefnet start"]+i*0x3c
       operations.append((address+0xC,10))
 
@@ -346,6 +353,11 @@ class Sly3Interface(GameInterface):
     )
 
     self._write_bytes(self.addresses["gadgets"], data)
+    self._write32(self.addresses["grapple-cam weapon"],1)
+
+    if powerups.hover_pack:
+      bentley = self._read32(self.addresses["bentley"])
+      self._write32(bentley+0x4b0,0)
 
   def get_powerups(self):
     data = self._read_bytes(self.addresses["gadgets"], 8)
@@ -363,6 +375,7 @@ class Sly3Interface(GameInterface):
       job_ids = [job_ids]
 
     markers = self.addresses["job markers"]
+    memory_states = self.addresses["job states"]
     to_read = []
     for job in job_ids:
       if job not in markers:
@@ -373,7 +386,7 @@ class Sly3Interface(GameInterface):
 
     statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
     to_write = [j for i,j in enumerate(to_read) if statuses[i] == 0 and self._job_parents_finished(j)]
-    operations = [(markers[j]+0x44,1) for j in to_write]
+    operations = [(markers[j]+0x44,1) for j in to_write]+[(memory_states[j],1) for j in to_write]
     self._batch_write32(operations)
 
   def deactivate_jobs(self, job_ids: int|list[int]):
@@ -381,6 +394,7 @@ class Sly3Interface(GameInterface):
       job_ids = [job_ids]
 
     markers = self.addresses["job markers"]
+    memory_states = self.addresses["job states"]
     to_read = []
     for job in job_ids:
       if job not in markers:
@@ -391,11 +405,36 @@ class Sly3Interface(GameInterface):
 
     statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
     to_write = [j for i,j in enumerate(to_read) if statuses[i] == 1]
-    operations = [(markers[j]+0x44,0) for j in to_write]
+    operations = [(markers[j]+0x44,0) for j in to_write]+[(memory_states[j],0) for j in to_write]
+    self._batch_write32(operations)
+
+  def complete_jobs(self, job_ids: int|list[int]):
+    if isinstance(job_ids, int):
+      job_ids = [job_ids]
+
+    markers = self.addresses["job markers"]
+    memory_states = self.addresses["job states"]
+    to_read = []
+    for job in job_ids:
+      if job not in markers:
+        self.logger.debug(f"Job {job} not able to be completed")
+        continue
+
+      to_read.append(job)
+
+    statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
+    to_write = [j for i,j in enumerate(to_read) if statuses[i] != 3]
+    operations = [(markers[j]+0x44,3) for j in to_write]+[(memory_states[j],3) for j in to_write]
     self._batch_write32(operations)
 
   def jobs_completed(self) -> list[bool]:
     addresses = [a for ep in self.addresses["job completed"].values() for c in ep for a in c]
+    states = self._batch_read32(addresses)
+
+    return [s != 0 for s in states]
+
+  def challenges_completed(self) -> list[bool]:
+    addresses = [a for ep in self.addresses["challenge completed"].values() for c in ep for a in c]
     states = self._batch_read32(addresses)
 
     return [s != 0 for s in states]
@@ -410,8 +449,52 @@ class Sly3Interface(GameInterface):
   #################
   ## Other Utils ##
   #################
+  def fix_jobs(self):
+    current_job = self.get_current_job()
+    if current_job != 0xffffffff:
+      return
+
+    current_map = self.get_current_map()
+
+    if current_map == 31:
+      job_ids = [3848,3907,4038,3991]
+    elif current_map == 32:
+      job_ids = [4071,4101,4120,4145]
+    else:
+      job_ids = [
+        job
+        for chapter in JOB_IDS[self.get_current_episode().name.replace("_", " ")]
+        for job in chapter
+      ]
+
+    markers = [self.addresses["job markers"][j]+0x44 for j in job_ids if j in self.addresses["job markers"]]
+    statuses = self._batch_read32(markers)
+    messed_up_jobs = [job_ids[i] for i,s in enumerate(statuses) if s == 2]
+
+    for job in messed_up_jobs:
+      self.logger.info(f"Fixing job {job}")
+      job_address = self.addresses["job markers"][job]
+      mission = self._read32(job_address+0x6c)
+
+      addresses = [job_address]
+
+      # Fixing all tasks in the job
+      while True:
+        if len(addresses) == 0:
+          break
+
+        address = addresses.pop(0)
+        task_mission = self._read32(address+0x6c)
+        if task_mission != mission:
+          break
+
+        self._write32(address+0x44,1)
+        n_children = self._read32(address+0x90)
+        children_list = self._read32(address+0x94)
+        addresses += [children_list+4*i for i in range(n_children)]
+
   def intro_done(self) -> bool:
-    return self._read32(self.addresses["intro complete"]) != 0
+    return self._read32(self.addresses["intro complete"]) == 1
 
   def to_episode_menu(self) -> None:
     self.logger.info("Skipping to episode menu")
@@ -422,11 +505,11 @@ class Sly3Interface(GameInterface):
     ):
       self.set_current_job(0xffffffff)
       self.set_items_received(0)
-      self._write32(self.addresses["intro complete"],1)
 
     self._reload(bytes.fromhex(MENU_RETURN_DATA))
 
   def unlock_episodes(self) -> None:
+    self._write32(self.addresses["intro complete"],1)
     self._write8(self.addresses["episode unlocks"], 8)
 
   def skip_cutscene(self) -> None:
@@ -463,211 +546,3 @@ class Sly3Interface(GameInterface):
       return
 
     self._write32(self.addresses["reload"],1)
-
-#### TESTING ZONE ####
-
-def read_text(interf: Sly3Interface, address: int):
-  """Reads text at a specific address"""
-  text = ""
-
-  while True:
-    character = interf._read_bytes(address,2)
-
-    if character == b"\x00\x00":
-      break
-
-    text += character.decode("utf-16-le")
-
-    address += 2
-
-  return text
-
-def find_string_id(interf: Sly3Interface, _id: int):
-  """Searches for a specific string by ID"""
-
-  # String table starts at 0x47A2D8
-
-  # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
-  # address to the string
-
-  string_table_address = interf._read32(0x47A2D8)
-  i = 0
-  while True:
-    string_id = interf._read32(string_table_address+i*8)
-    if string_id == _id:
-      return interf._read32(string_table_address+i*8+4)
-    i += 1
-
-def find_string_address(interf: Sly3Interface, address: int):
-  """Searches for a specific string by ID"""
-
-  # String table starts at 0x47A2D8
-
-  # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
-  # address to the string
-
-  string_table_address = interf._read32(0x47A2D8)
-  i = 0
-  while True:
-    string_address = interf._read32(string_table_address+i*8+4)
-    if string_address == address:
-      return interf._read32(string_table_address+i*8)
-    i += 1
-
-def print_string_table(interf: Sly3Interface, n: int):
-  """Prints n entries in the string table"""
-
-  # String table starts at 0x47A2D8
-
-  # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
-  # address to the string
-
-  string_table_address = interf._read32(0x47A2D8)
-  for i in range(n):
-    address = interf._read32(string_table_address+i*8+4)
-    print(read_text(interf, address), i)
-
-def find_text(interf: Sly3Interface, text: str):
-  """Prints n entries in the string table"""
-
-  # String table starts at 0x47A2D8
-
-  # Each entry in the string table has 4 bytes of its ID and then 4 bytes of an
-  # address to the string
-
-  string_table_address = interf._read32(0x47A2D8)
-  results = []
-  for i in range(2000):
-    address = interf._read32(string_table_address+i*8+4)
-    try:
-      if text in read_text(interf, address):
-        results.append(address)
-    except:
-      return results
-
-  return results
-
-def print_thiefnet_addresses(interf: Sly3Interface):
-  print("        {")
-  for i in range(44):
-    address = 0x343208+i*0x3c
-    interf._write32(address,i+1)
-    interf._write32(address+0xC,0)
-
-    name_id = interf._read32(address+0x14)
-    name_address = find_string_id(interf, name_id)
-    name_text = read_text(interf, name_address)
-
-    description_id = interf._read32(address+0x18)
-    description_address = find_string_id(interf, description_id)
-
-    print(
-      "          " +
-      f"\"{name_text}\": "+
-      f"({hex(name_address)},{hex(description_address)}),"
-    )
-
-  print("        }")
-
-def print_thiefnet_text(interf: Sly3Interface):
-  print("[")
-  for i in range(44):
-    address = 0x343208+i*0x3c
-    interf._write32(address,i+1)
-    interf._write32(address+0xC,0)
-
-    name_id = interf._read32(address+0x14)
-    name_address = find_string_id(interf, name_id)
-    name_text = read_text(interf, name_address)
-
-    description_id = interf._read32(address+0x18)
-    description_address = find_string_id(interf, description_id)
-    description_text = read_text(interf, description_address)
-
-    print(
-      "  " +
-      f"(\"{name_text}\",\"{description_text}\"),"
-    )
-
-  print("]")
-
-def current_job_info(interf: Sly3Interface):
-  current_job = interf._read32(0x36DB98)
-
-  address = interf._read32(interf.addresses["DAG root"])
-  i = 0
-  while address != 0:
-    job_pointer = interf._read32(address+0x6c)
-    job_id = interf._read32(job_pointer+0x18)
-    if job_id == current_job:
-      break
-
-    address = interf._read32(address+0x20)
-    i += 1
-
-  print("Job ID:", current_job)
-  print("Job address:", hex(address))
-  print("Job index:", i)
-  print("Job state (should be 2):", interf._read32(address+0x44))
-
-def active_jobs_info(interf: Sly3Interface):
-  address = interf._read32(interf.addresses["DAG root"])
-  i = 0
-  while address != 0:
-    job_pointer = interf._read32(address+0x6c)
-    job_id = interf._read32(job_pointer+0x18)
-    job_state = interf._read32(address+0x44)
-    if job_state == 1:
-      print(f"{job_id}: {hex(address)}")
-
-    address = interf._read32(address+0x20)
-    i += 1
-
-if __name__ == "__main__":
-  interf = Sly3Interface(Logger("test"))
-  interf.connect_to_game()
-  #interf.to_episode_menu()
-  #interf.unlock_episodes()
-  # interf.skip_cutscene()
-
-  # Loading all power-ups (except the one I don't know)
-  # power_ups = PowerUps(True, True, True, False, *[True]*44)
-  # interf.set_powerups(power_ups)
-
-  # Adding 10000 coins
-  #interf.add_coins(10000)
-
-  # === Testing Zone ===
-
-  # print_thiefnet_addresses(interf)
-
-  # disabling first job of episode 1 (0 = disabled, 1 = available, 2 = in progress, 3 = complete)
-  # interf._write32(0x1335d10+0x44, 0)
-
-  # current_job_info(interf)
-  # find_string_id
-
-  # print_string_table(interf, 500)
-
-  # addresses = find_text(interf, "Press &2X&. to ")
-  # print("======")
-  # for address in addresses:
-  #   print(hex(address))
-  #   print(read_text(interf, address))
-  #   print(find_string_address(interf, address))
-  #   print("======")
-
-  # print(hex(find_string_id(interf, 1)))
-  # print([hex(i) for i in find_text(interf, "merges")])
-  # active_jobs_info(interf)
-  # interf.set_infobox("test")
-  # interf.disable_infobox()
-  # pointer = interf._read32(0x46F798)
-  # print(interf._read32(pointer+0x54))
-  # print(interf._read32(pointer+0x64))
-
-  # interf.to_episode_menu()
-  # print(interf.get_items_received())
-  # interf.set_items_received(28)
-  # interf._write32(interf.addresses["intro complete"], 1)
-  print(interf._read32(interf.addresses["reload"]))
