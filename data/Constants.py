@@ -340,7 +340,7 @@ REQUIREMENTS = {
         []
       ],
       [
-        [],
+        ["Binocucom"],
         ["Treasure Map"]
       ]
     ],
@@ -365,7 +365,7 @@ REQUIREMENTS = {
     ],
     "A Cold Alliance": [
       [
-        ["Bentley", "Murray", "Guru", "Penelope", "Binocucom"]
+        ["Bentley", "Murray", "Ball Form", "Guru", "Penelope", "Binocucom"]
       ],
       [
         ["Panda King"],
