@@ -50,15 +50,15 @@ class Sly3CommandProcessor(ClientCommandProcessor): # type: ignore[misc]
     if isinstance(self.ctx, Sly3Context):
       self.ctx.game_interface._reload()
 
-  def _cmd_coins(self, amount: str):
-    """Add coins to game."""
-    if isinstance(self.ctx, Sly3Context):
-      self.ctx.game_interface.add_coins(int(amount))
+  # def _cmd_coins(self, amount: str):
+  #   """Add coins to game."""
+  #   if isinstance(self.ctx, Sly3Context):
+  #     self.ctx.game_interface.add_coins(int(amount))
 
-  def _cmd_notification(self, text: str):
-    """Add coins to game."""
-    if isinstance(self.ctx, Sly3Context):
-      self.ctx.notification(text)
+  # def _cmd_notification(self, text: str):
+  #   """Send a notification to the game."""
+  #   if isinstance(self.ctx, Sly3Context):
+  #     self.ctx.notification(text)
 
 class Sly3Context(CommonContext): # type: ignore[misc]
   command_processor = Sly3CommandProcessor
