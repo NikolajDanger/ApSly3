@@ -384,7 +384,7 @@ REQUIREMENTS = {
       ],
       [
         ["Murray"],
-        ["Bentley", "Penelope", "Grapple-Cam", "Murray", "Silent Obliteration", "Treasure Map"]
+        ["Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ],
       [],
       [
