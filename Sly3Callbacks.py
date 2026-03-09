@@ -258,10 +258,11 @@ async def kick_from_episode(ctx: "Sly3Context", availability: Dict):
     job_not_available = False
 
   if not_connected or ep_not_unlocked or job_not_available:
-    ctx.game_interface.logger.debug(
-      f"\nNot connected: {not_connected}"+
-      f"\nEpisode not unlocked: {ep_not_unlocked}"+
-      f"\nJob not available: {job_not_available}"
+    ctx.logger.debug(
+      "Skipping to episode menu:"+
+      f"\n    Not connected: {not_connected}"+
+      f"\n    Episode not unlocked: {ep_not_unlocked}"+
+      f"\n    Job not available: {job_not_available}"
     )
     ctx.game_interface.to_episode_menu()
 
@@ -339,6 +340,7 @@ async def receive_items(ctx: "Sly3Context"):
 
     if i >= items_n:
       ctx.inventory[network_item.item] += 1
+      ctx.logger.debug(f"Received {item.name} from {player}")
       ctx.notification(f"Received {item.name} from {player}")
 
     if item.category == "Episode":

@@ -107,6 +107,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
     self.version = [0,1,1]
     self.game_interface = Sly3Interface(logger)
     self.available_episodes[Sly3Episode.Title_Screen] = True
+    self.logger = logger
 
   def on_deathlink(self, data: Utils.Dict[str, Utils.Any]) -> None:
     super().on_deathlink(data)
@@ -301,6 +302,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
       self.update_gui()
 
   def notification(self, text: str):
+    self.logger.debug("Notification:",text)
     self.notification_queue.append(text)
 
 def update_connection_status(ctx: Sly3Context, status: bool):
@@ -330,7 +332,7 @@ async def _handle_game_ready(ctx: Sly3Context) -> None:
 
   if ctx.game_interface.is_loading():
     ctx.is_loading = True
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.5)
     return
   elif ctx.is_loading:
     ctx.is_loading = False
@@ -352,7 +354,7 @@ async def _handle_game_ready(ctx: Sly3Context) -> None:
       await asyncio.sleep(1)
       return
 
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.2)
   else:
     message = "Waiting for player to connect to server"
     if ctx.last_error_message is not message:

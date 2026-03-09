@@ -198,10 +198,12 @@ class Sly3Interface(GameInterface):
       i += 1
 
   def _get_task_parents(self, job: int) -> list[int]:
+    self.logger.debug(f"Getting parents for job {job}")
     address = self.addresses["job markers"][job]
     parents_n = self._read32(address+0x84)
     parents_list = self._read32(address+0x88)
     if parents_n > 10:
+      self.logger.debug(f"MEMORY ERROR: {parents_n} parents")
       return []
     else:
       parent_pointers = [parents_list+4*i for i in range(parents_n)]
@@ -381,6 +383,7 @@ class Sly3Interface(GameInterface):
   def activate_jobs(self, job_ids: int|list[int]):
     if isinstance(job_ids, int):
       job_ids = [job_ids]
+    self.logger.debug(f"Activating jobs: {job_ids}")
 
     markers = self.addresses["job markers"]
     memory_states = self.addresses["job states"]
@@ -394,12 +397,14 @@ class Sly3Interface(GameInterface):
 
     statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
     to_write = [j for i,j in enumerate(to_read) if statuses[i] == 0 and self._job_parents_finished(j)]
+    self.logger.debug(f"To be activated: {to_write}")
     operations = [(markers[j]+0x44,1) for j in to_write]+[(memory_states[j],1) for j in to_write]
     self._batch_write32(operations)
 
   def deactivate_jobs(self, job_ids: int|list[int]):
     if isinstance(job_ids, int):
       job_ids = [job_ids]
+    self.logger.debug(f"Deactivating jobs: {job_ids}")
 
     markers = self.addresses["job markers"]
     memory_states = self.addresses["job states"]
@@ -413,6 +418,7 @@ class Sly3Interface(GameInterface):
 
     statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
     to_write = [j for i,j in enumerate(to_read) if statuses[i] == 1]
+    self.logger.debug(f"To be deactivated: {to_write}")
     operations = [(markers[j]+0x44,0) for j in to_write]+[(memory_states[j],0) for j in to_write]
     self._batch_write32(operations)
 
@@ -500,6 +506,7 @@ class Sly3Interface(GameInterface):
         n_children = self._read32(address+0x90)
         children_list = self._read32(address+0x94)
         if n_children < 10:
+          self.logger.debug(f"MEMORY ERROR: {n_children} children")
           addresses += [children_list+4*i for i in range(n_children)]
 
   def intro_done(self) -> bool:
