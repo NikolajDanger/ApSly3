@@ -257,11 +257,11 @@ class Sly3Context(CommonContext): # type: ignore[misc]
       if reqs != []
     ])
 
-  # async def server_auth(self, password_requested: bool = False) -> None:
-  #   if password_requested and not self.password:
-  #     await super(Sly3Context, self).server_auth(password_requested)
-  #   await self.get_username()
-  #   await self.send_connect()
+  async def server_auth(self, password_requested: bool = False) -> None:
+    if password_requested and not self.password:
+      await super(Sly3Context, self).server_auth(password_requested)
+    await self.get_username()
+    await self.send_connect()
 
   def on_package(self, cmd: str, args: dict):
     super().on_package(cmd, args)
