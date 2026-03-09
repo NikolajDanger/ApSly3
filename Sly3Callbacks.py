@@ -387,7 +387,7 @@ async def receive_items(ctx: "Sly3Context"):
       ctx.game_interface.add_coins(amount)
 
   if ctx.current_episode != 0 and not ctx.in_safehouse:
-      set_powerups(ctx)
+    set_powerups(ctx)
 
   ctx.game_interface.set_items_received(len(network_items))
   if available_episodes != ctx.available_episodes:

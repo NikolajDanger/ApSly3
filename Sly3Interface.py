@@ -22,7 +22,7 @@ class PowerUps(NamedTuple):
   binocucom: bool = False
   bombs: bool = False
   unknown: bool = False
-  trigger_Bomb: bool = False
+  trigger_bomb: bool = False
   fishing_pole: bool = False
 
   alarm_clock: bool = False
@@ -201,8 +201,11 @@ class Sly3Interface(GameInterface):
     address = self.addresses["job markers"][job]
     parents_n = self._read32(address+0x84)
     parents_list = self._read32(address+0x88)
-    parent_pointers = [parents_list+4*i for i in range(parents_n)]
-    return self._batch_read32(parent_pointers)
+    if parents_n > 10:
+      return []
+    else:
+      parent_pointers = [parents_list+4*i for i in range(parents_n)]
+      return self._batch_read32(parent_pointers)
 
   def _job_parents_finished(self, job: int) -> bool:
     parents = self._get_task_parents(job)
@@ -496,7 +499,8 @@ class Sly3Interface(GameInterface):
         self._write32(address+0x44,1)
         n_children = self._read32(address+0x90)
         children_list = self._read32(address+0x94)
-        addresses += [children_list+4*i for i in range(n_children)]
+        if n_children < 10:
+          addresses += [children_list+4*i for i in range(n_children)]
 
   def intro_done(self) -> bool:
     return self._read32(self.addresses["intro complete"]) == 1

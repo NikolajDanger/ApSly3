@@ -221,7 +221,7 @@ REQUIREMENTS = {
         ["Disguise (Venice)"],
       ],
       [
-        ["Bombs"]
+        []
       ]
     ],
     "Rumble Down Under" :[
@@ -234,10 +234,12 @@ REQUIREMENTS = {
       ],
       [
         [],
-        [],
+        ["Bombs"],
         []
       ],
-      [[]]
+      [
+        ["Binocucom"]
+      ]
     ],
     "Flight of Fancy": [
       [
@@ -245,7 +247,7 @@ REQUIREMENTS = {
       ],
       [
         ["Murray", "Guru", "Fishing Pole"],
-        ["Murray"],
+        ["Murray", "Ball Form"],
         ["Murray","Penelope"],
         ["Murray", "Guru", "Fishing Pole", "Penelope"]
       ],
@@ -318,10 +320,10 @@ REQUIREMENTS = {
         []
       ],
       [
-        ["Bombs"],
-        ["Bombs"],
-        ["Bombs"],
-        ["Bombs", "Treasure Map"]
+        [],
+        [],
+        [],
+        ["Treasure Map"]
       ]
     ],
     "Rumble Down Under" :[
