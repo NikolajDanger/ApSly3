@@ -323,7 +323,7 @@ REQUIREMENTS = {
         [],
         [],
         [],
-        ["Treasure Map"]
+        ["Disguise (Pirate)", "Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ]
     ],
     "Rumble Down Under" :[
@@ -341,7 +341,7 @@ REQUIREMENTS = {
       ],
       [
         ["Binocucom"],
-        ["Treasure Map"]
+        ["Binocucom", "Disguise (Pirate)", "Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ]
     ],
     "Flight of Fancy": [
@@ -360,7 +360,7 @@ REQUIREMENTS = {
       ],
       [
         ["Paraglider"],
-        ["Paraglider", "Treasure Map"]
+        ["Paraglider", "Disguise (Pirate)", "Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ]
     ],
     "A Cold Alliance": [
@@ -374,7 +374,7 @@ REQUIREMENTS = {
       ],
       [],
       [
-        ["Treasure Map"]
+        ["Disguise (Pirate)", "Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ]
     ],
     "Dead Men Tell No Tales": [
@@ -663,9 +663,9 @@ ADDRESSES = {
     },
     "job markers": {
       2085: 0x1335d10,
-      2230: 0x1350560,
-      2283: 0x1357f80,
-      2329: 0x135aba0,
+      2230: 0x13461b0,
+      2283: 0x134c730,
+      2329: 0x134f350,
       2139: 0x1330c40,
       2168: 0x1335dc0,
       2187: 0x133e9b0,

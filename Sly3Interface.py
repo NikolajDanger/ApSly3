@@ -395,8 +395,10 @@ class Sly3Interface(GameInterface):
 
       to_read.append(job)
 
-    statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
-    to_write = [j for i,j in enumerate(to_read) if statuses[i] == 0 and self._job_parents_finished(j)]
+    # statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
+    to_write = [j for i,j in enumerate(to_read) if self._job_parents_finished(j)]
+    to_deactivate = list(set(job_ids) - set(to_write))
+    self.deactivate_jobs(to_deactivate)
     self.logger.debug(f"To be activated: {to_write}")
     operations = [(markers[j]+0x44,1) for j in to_write]+[(memory_states[j],1) for j in to_write]
     self._batch_write32(operations)
