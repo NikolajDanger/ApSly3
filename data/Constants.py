@@ -248,8 +248,8 @@ REQUIREMENTS = {
       [
         ["Murray", "Guru", "Fishing Pole"],
         ["Murray", "Ball Form"],
-        ["Murray","Penelope"],
-        ["Murray", "Guru", "Fishing Pole", "Penelope"]
+        ["Murray", "Penelope"],
+        ["Murray", "Guru", "Fishing Pole", "Ball Form", "Penelope"]
       ],
       [
         ["Binocucom"],
@@ -267,8 +267,8 @@ REQUIREMENTS = {
       [
         ["Disguise (Photographer)"],
         ["Panda King"],
-        ["Grapple-Cam"],
-        ["Disguise (Photographer)", "Panda King", "Grapple-Cam"]
+        ["Fishing Pole", "Grapple-Cam"],
+        ["Disguise (Photographer)", "Panda King", "Fishing Pole", "Grapple-Cam"]
       ],
       [
         [],
