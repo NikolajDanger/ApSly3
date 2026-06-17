@@ -632,30 +632,3 @@ class Sly3Interface(GameInterface):
       return
 
     self._write32(self.addresses["reload"],1)
-
-def active_jobs_info(interf: Sly3Interface):
-  start = interf._read32(interf.addresses["DAG root"])
-  address = start
-  jobs = []
-  i = 0
-  while address != 0:
-    job_pointer = interf._read32(address+0x6c)
-    job_id = interf._read32(job_pointer+0x18)
-    if job_id not in jobs:
-      jobs.append(job_id)
-      print(f"{job_id}: {hex(address)} ({hex(address-start)}) ({i})")
-
-    address = interf._read32(address+0x20)
-    i += 1
-
-  mt_address = interf.addresses["map time"]
-  print(f"Map time: {interf._read32(mt_address)}")
-
-if __name__ == "__main__":
-  interf = Sly3Interface(Logger("test"))
-  interf.connect_to_game()
-  active_jobs_info(interf)
-  # address = interf.addresses["thiefnet start"]
-  # name_id = interf._read32(address+0x14)
-  # name_address = interf._find_string_address(name_id)
-  # interf.set_text(name_address, "&2abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&.")
