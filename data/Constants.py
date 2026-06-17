@@ -253,7 +253,7 @@ REQUIREMENTS = {
       ],
       [
         ["Binocucom"],
-        ["Hover Pack"],
+        [("Progressive Hover Pack", 3), "Binocucom", "Carmelita"],
         ["Carmelita"]
       ],
       [
@@ -267,8 +267,8 @@ REQUIREMENTS = {
       [
         ["Disguise (Photographer)"],
         ["Panda King"],
-        ["Fishing Pole", "Grapple-Cam"],
-        ["Disguise (Photographer)", "Panda King", "Fishing Pole", "Grapple-Cam"]
+        ["Fishing Pole", ("Progressive Grapple-Cam", 1), ("Progressive Hover Pack", 3)],
+        ["Disguise (Photographer)", "Panda King", "Fishing Pole", ("Progressive Grapple-Cam", 1), ("Progressive Hover Pack", 3)]
       ],
       [
         [],
@@ -282,9 +282,9 @@ REQUIREMENTS = {
         ["Disguise (Pirate)"]
       ],
       [
-        ["Bentley", "Penelope", "Grapple-Cam", "Bombs"],
+        ["Bentley", "Penelope", ("Progressive Grapple-Cam", 2), "Bombs"],
         ["Murray"],
-        ["Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
+        ["Bentley", "Penelope", ("Progressive Grapple-Cam", 2), "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ],
       [
         ["Panda King"],
@@ -303,8 +303,8 @@ REQUIREMENTS = {
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider", ("Progressive Hover Pack", 2)],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider", ("Progressive Hover Pack", 2)],
       ]
     ],
   },
@@ -323,7 +323,7 @@ REQUIREMENTS = {
         [],
         [],
         [],
-        ["Disguise (Pirate)", "Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
+        ["Disguise (Pirate)", "Bentley", "Penelope", ("Progressive Grapple-Cam", 2), "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ]
     ],
     "Rumble Down Under" :[
@@ -332,7 +332,7 @@ REQUIREMENTS = {
         [],
         [],
         ["Murray", "Ball Form"],
-        ["Murray", "Ball Form", "Guru"]
+        ["Murray", "Ball Form", "Guru", "Bentley"]
       ],
       [
         [],
@@ -341,7 +341,7 @@ REQUIREMENTS = {
       ],
       [
         ["Binocucom"],
-        ["Binocucom", "Disguise (Pirate)", "Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
+        ["Binocucom", "Disguise (Pirate)", "Bentley", "Penelope", ("Progressive Grapple-Cam", 2), "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ]
     ],
     "Flight of Fancy": [
@@ -355,12 +355,12 @@ REQUIREMENTS = {
         ["Murray", "Guru", "Fishing Pole", "Penelope"],
       ],
       [
-        [],
+        ["Binocucom"],
         ["Carmelita"]
       ],
       [
         ["Paraglider"],
-        ["Paraglider", "Disguise (Pirate)", "Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
+        ["Paraglider", "Disguise (Pirate)", "Bentley", "Penelope", ("Progressive Grapple-Cam", 2), "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ]
     ],
     "A Cold Alliance": [
@@ -369,12 +369,12 @@ REQUIREMENTS = {
       ],
       [
         ["Panda King"],
-        ["Disguise (Photographer)", "Panda King", "Grapple-Cam"],
-        ["Disguise (Photographer)", "Panda King", "Grapple-Cam"]
+        ["Disguise (Photographer)", "Panda King", "Fishing Pole", ("Progressive Grapple-Cam", 1), ("Progressive Hover Pack", 3)],
+        ["Disguise (Photographer)", "Panda King", "Fishing Pole", ("Progressive Grapple-Cam", 1), ("Progressive Hover Pack", 3)]
       ],
       [],
       [
-        ["Disguise (Pirate)", "Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
+        ["Disguise (Pirate)", "Bentley", "Penelope", ("Progressive Grapple-Cam", 2), "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ]
     ],
     "Dead Men Tell No Tales": [
@@ -384,7 +384,7 @@ REQUIREMENTS = {
       ],
       [
         ["Murray"],
-        ["Bentley", "Penelope", "Grapple-Cam", "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
+        ["Bentley", "Penelope", ("Progressive Grapple-Cam", 2), "Bombs", "Murray", "Silent Obliteration", "Treasure Map"]
       ],
       [],
       [
@@ -397,7 +397,7 @@ REQUIREMENTS = {
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita"],
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
         ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
-        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider"],
+        ["Bentley", "Murray", "Guru", "Penelope", "Panda King", "Dimitri", "Carmelita", "Paraglider", ("Progressive Hover Pack", 2)],
       ]
     ],
   }
@@ -441,6 +441,7 @@ JOB_IDS = {
 
 ADDRESSES = {
   "SCUS-97464" : {
+    "map time": 0x36BC20,
     "bentley": 0x36B250,
     "items received": 0x46E250,
     "world id": 0x468D30,
@@ -452,12 +453,30 @@ ADDRESSES = {
     "episode unlocks": 0x56AEC8,
     "frame counter": 0x389BE0,
     "x pressed": 0x36E78E,
+    "shoulder buttons": [0x36E790, 0x36E791, 0x36E792, 0x36E793],
     "skip cutscene": 0x389C20,
+    "dialogue pointer": 0x475200,
     "gadgets": 0x468DCC,
     "coins": 0x468DDC,
     "DAG root": 0x478C8C,
     "intro complete": 0x46E260,
     "grapple-cam weapon": 0x468DD8,
+    # Episode 6 resume pointer; completing an earlier-episode job out of order
+    # clears this pair, restarting the episode at job 1. Both words are needed.
+    "episode 6 resume id": 0x468D3C,
+    "episode 6 resume map": 0x468D40,
+    # (id, map) to resume into, indexed by number of episode-6 jobs completed.
+    # id is each job's DAG entry-task id (1841 + index); map from node +0xAC.
+    "episode 6 resume": [
+      (1841, 35),  # 0 done -> job 1 (Carmelita to the Rescue)  [default entry]
+      (1842, 35),  # 1 done -> job 2 (A Deadly Bite)
+      (1843, 35),  # 2 done -> job 3 (The Dark Current)
+      (1844, 35),  # 3 done -> job 4 (Bump-Charge-Jump)
+      (1845, 35),  # 4 done -> job 5 (Danger in the Skies)
+      (1846, 37),  # 5 done -> job 6 (The Ancestor's Gauntlet)
+      (1847, 37),  # 6 done -> job 7 (Stand Your Ground)
+      (1848, 39),  # 7 done -> job 8 (Final Legacy)
+    ],
     "job completed": {
       "An Opera of Fear": [
         [
@@ -663,14 +682,14 @@ ADDRESSES = {
     },
     "job markers": {
       2085: 0x1335d10,
-      2230: 0x13461b0,
-      2283: 0x134c730,
-      2329: 0x134f350,
-      2139: 0x1330c40,
-      2168: 0x1335dc0,
-      2187: 0x133e9b0,
+      2139: 0x133aff0,
+      2168: 0x1340170,
+      2187: 0x1348d60,
+      2230: 0x1350560,
+      2283: 0x1357f80,
+      2329: 0x135aba0,
       2352: 0x1351520,
-      2419: 0x135e550,
+      2419: 0x1369da0,
 
       2577: 0x6b4250,
       2596: 0x6b80f0,
@@ -792,6 +811,58 @@ ADDRESSES = {
     }
   }
 }
+
+
+JOB_MARKERS = {
+  2085: 2,
+  2139: 19,
+  2168: 29,
+  2187: 39,
+  2230: 45,
+  2283: 68,
+  2329: 87,
+  2352: 95,
+  2419: 120,
+
+  2577: 3,
+  2596: 14,
+  2623: 25,
+  2663: 42,
+  2695: 59,
+  2730: 72,
+  2780: 80,
+  2805: 84,
+  2843: 102,
+
+  2983: 1,
+  3025: 15,
+  3061: 29,
+  3101: 49,
+  3140: 62,
+  3202: 87,
+  3164: 70,
+  3225: 95,
+  3259: 108,
+
+  3381: 1,
+  3449: 36,
+  3509: 52,
+  3540: 63,
+  3584: 82,
+  3629: 97,
+  3672: 117,
+  3684: 121,
+  3712: 129,
+
+  3848: 3,
+  3907: 25,
+  3991: 59,
+  4038: 78,
+  4071: 98,
+  4101: 110,
+  4120: 116,
+  4145: 129,
+},
 
 MENU_RETURN_DATA = (
   "794C15EE"+

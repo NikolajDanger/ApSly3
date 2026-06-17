@@ -44,11 +44,11 @@ powerup_list = [
   ("Adrenaline Burst",          ItemClassification.useful,      "Power-Up"),
   ("Health Extractor",          ItemClassification.useful,      "Power-Up"),
   ("Insanity Strike",           ItemClassification.useful,      "Power-Up"),
-  ("Grapple-Cam",               ItemClassification.progression, "Power-Up"),
+  ("Progressive Grapple-Cam",   ItemClassification.progression, "Power-Up"),
   ("Size Destabilizer",         ItemClassification.useful,      "Power-Up"),
   ("Rage Bomb",                 ItemClassification.useful,      "Power-Up"),
   ("Reduction Bomb",            ItemClassification.useful,      "Power-Up"),
-  ("Hover Pack",                ItemClassification.progression, "Power-Up"),
+  ("Progressive Hover Pack",    ItemClassification.progression, "Power-Up"),
 
   ("Ball Form",                 ItemClassification.progression, "Power-Up"),
   ("Berserker Charge",          ItemClassification.useful,      "Power-Up"),

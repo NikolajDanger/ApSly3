@@ -20,7 +20,7 @@ purchases_list = [
 ]
 
 challenges_list = [
-  (f"{ep} - {challenge}", "Challenge")
+  (f"{ep} - {challenge} (MTC)", "Challenge")
   for ep, chapters in CHALLENGES.items()
   for challenges in chapters
   for challenge in challenges

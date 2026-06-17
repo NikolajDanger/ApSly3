@@ -66,6 +66,18 @@ class IncludeMegaJump(Toggle):
   display_name = "Include Mega Jump"
 
 
+class MegaJumpEnergyCost(Range):
+  """
+  The amount of gadget meter a single Mega Jump consumes. Vanilla is
+  34 (a full meter allows three jumps).
+  """
+
+  display_name = "Mega Jump Energy Cost"
+  range_start = 0
+  range_end = 100
+  default = 34
+
+
 class StartWithBinocucom(DefaultOnToggle):
   """
   Start with the ability to use the binocucom, rather than shuffling it into
@@ -81,6 +93,15 @@ class StartWithBombs(DefaultOnToggle):
   """
 
   display_name = "Start with Bombs"
+
+
+class StartWithDoubleJump(DefaultOnToggle):
+  """
+  Start with Bentley's double jump (one Progressive Hover Pack), rather than
+  shuffling all three into the pool. This is the vanilla default.
+  """
+
+  display_name = "Start with Double Jump"
 
 
 class CoinsMinimum(Range):
@@ -152,6 +173,7 @@ class Sly3Options(PerGameCommonOptions):
   starting_episode: StartingEpisode
   goal: Goal
   include_mega_jump: IncludeMegaJump
+  mega_jump_energy_cost: MegaJumpEnergyCost
   coins_minimum: CoinsMinimum
   coins_maximum: CoinsMaximum
   thiefnet_locations: ThiefNetLocations
@@ -160,6 +182,7 @@ class Sly3Options(PerGameCommonOptions):
   bonus_crew_member: BonusCrewMember
   start_with_binocucom: StartWithBinocucom
   start_with_bombs: StartWithBombs
+  start_with_double_jump: StartWithDoubleJump
   scout_thiefnet: ScoutThiefnet
 
 sly3_option_groups = [
@@ -170,7 +193,9 @@ sly3_option_groups = [
     BonusCrewMember,
     StartWithBinocucom,
     StartWithBombs,
+    StartWithDoubleJump,
     IncludeMegaJump,
+    MegaJumpEnergyCost,
     CoinsMinimum,
     CoinsMaximum
   ]),

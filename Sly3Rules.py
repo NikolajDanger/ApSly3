@@ -1,14 +1,20 @@
 import typing
-from math import ceil
 
 from BaseClasses import CollectionState
 
-from worlds.generic.Rules import add_rule
+from worlds.generic.Rules import add_rule, add_item_rule
 from .data.Constants import EPISODES, CHALLENGES, REQUIREMENTS
 from .data.Locations import location_dict
 
 if typing.TYPE_CHECKING:
     from . import Sly3World
+
+def has_req(state: CollectionState, req, player: int) -> bool:
+  """Check a single requirement, which may be an item name or a
+  (item_name, count) tuple for progressive items."""
+  if isinstance(req, tuple):
+    return state.has(req[0], player, req[1])
+  return state.has(req, player)
 
 def make_thiefnet_rule(player: int, n: int):
   def new_rule(state: CollectionState):
@@ -36,16 +42,19 @@ def set_rules_sly3(world: "Sly3World"):
   thiefnet_items = world.options.thiefnet_locations.value
 
   # Putting ThiefNet stuff out of logic, to make early game less slow.
-  # Divides the items into groups that require a number of episode and crew
-  # items to be in logic
-  if not hasattr(world.multiworld, "generation_is_fake"): # (unless tracking)
-    divisor = ceil(thiefnet_items/12)
-    for i in range(1,thiefnet_items+1):
-      episode_items_n = ceil(i/divisor)
-      add_rule(
-        world.get_location(f"ThiefNet {i:02}"),
-        make_thiefnet_rule(player, episode_items_n)
-      )
+  if not hasattr(world.multiworld, "generation_is_fake") and thiefnet_items > 0: # (unless tracking)
+    FLOOR = 6
+    if world.options.starting_episode.value > 1:
+      FLOOR = 1
+    CEILING = 10
+
+    span = max(thiefnet_items - 1, 1)
+
+    for i in range(1, thiefnet_items + 1):
+      location = world.get_location(f"ThiefNet {i:02}")
+
+      required = FLOOR + round((i - 1) / span * (CEILING - FLOOR))
+      add_rule(location, make_thiefnet_rule(player, required))
 
   ### Job requirements
   for episode, sections in EPISODES.items():
@@ -55,7 +64,7 @@ def set_rules_sly3(world: "Sly3World"):
         add_rule(
           world.get_location(f"{episode} - {job}"),
           lambda state, items=reqs: (
-            all(state.has(item, player) for item in items)
+            all(has_req(state, item, player) for item in items)
           )
         )
 
@@ -65,9 +74,9 @@ def set_rules_sly3(world: "Sly3World"):
       for j, challenge in enumerate(s):
         reqs = REQUIREMENTS["Challenges"][episode][i][j]
         add_rule(
-          world.get_location(f"{episode} - {challenge}"),
+          world.get_location(f"{episode} - {challenge} (MTC)"),
           lambda state, items=reqs: (
-            all(state.has(item, player) for item in items)
+            all(has_req(state, item, player) for item in items)
           )
         )
 
@@ -91,7 +100,7 @@ def set_rules_sly3(world: "Sly3World"):
     add_rule(
       victory_location,
       lambda state, items=reqs: (
-        all(state.has(item, player) for item in all_requirements)
+        all(has_req(state, item, player) for item in all_requirements)
       )
     )
 

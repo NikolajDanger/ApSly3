@@ -14,7 +14,7 @@ def gen_powerups(world: "Sly3World") -> list[Item]:
   for item_name in item_groups["Power-Up"]:
     if item_name == "Mega Jump" and not world.options.include_mega_jump:
       continue
-    elif item_name == "Progressive Shadow Power":
+    elif item_name in ("Progressive Shadow Power", "Progressive Grapple-Cam"):
       powerups.append(item_name)
       powerups.append(item_name)
     elif item_name[:11] == "Progressive":
@@ -31,6 +31,10 @@ def gen_powerups(world: "Sly3World") -> list[Item]:
   if world.options.start_with_bombs:
     powerups.remove("Bombs")
     world.multiworld.push_precollected(world.create_item("Bombs"))
+
+  if world.options.start_with_double_jump:
+    powerups.remove("Progressive Hover Pack")
+    world.multiworld.push_precollected(world.create_item("Progressive Hover Pack"))
 
   return [world.create_item(c) for c in powerups]
 

@@ -3,10 +3,11 @@ import struct
 from logging import Logger
 from enum import IntEnum
 import traceback
-from time import sleep
+from time import sleep, monotonic
 
 from .pcsx2_interface.pine import Pine
-from .data.Constants import ADDRESSES, MENU_RETURN_DATA, POWER_UP_TEXT, JOB_IDS, EPISODES
+from .data.Constants import ADDRESSES, MENU_RETURN_DATA, POWER_UP_TEXT, JOB_IDS, EPISODES, CHALLENGES
+from .data.Locations import location_dict
 
 class Sly3Episode(IntEnum):
   Title_Screen = 0
@@ -83,6 +84,8 @@ class GameInterface():
   game_id_error: Optional[str] = None
   current_game: Optional[str] = None
   addresses: Dict = {}
+  # Timestamp (monotonic) of when the dialogue first appeared stuck, or None.
+  _dialogue_stuck_since: Optional[float] = None
 
   def __init__(self, logger) -> None:
     self.logger = logger
@@ -340,7 +343,7 @@ class Sly3Interface(GameInterface):
   def set_items_received(self, n:int) -> None:
     self._write32(self.addresses["items received"], n)
 
-  def set_powerups(self, powerups: PowerUps):
+  def set_powerups(self, powerups: PowerUps, hover_jumps: int = 1, grapple_cam_weapon: bool = False):
     booleans = list(powerups)
     byte_list = [
       [False]*2+booleans[0:6],
@@ -358,16 +361,11 @@ class Sly3Interface(GameInterface):
     )
 
     self._write_bytes(self.addresses["gadgets"], data)
-    self._write32(self.addresses["grapple-cam weapon"],1)
-
-    if powerups.hover_pack:
-      jumps = 3
-    else:
-      jumps = 1
+    self._write32(self.addresses["grapple-cam weapon"],int(grapple_cam_weapon))
 
     bentley = self._read32(self.addresses["bentley"])
     if bentley != 0:
-      self._write32(bentley+0x4b0,jumps)
+      self._write32(bentley+0x4b0,hover_jumps)
 
   def get_powerups(self):
     data = self._read_bytes(self.addresses["gadgets"], 8)
@@ -379,6 +377,12 @@ class Sly3Interface(GameInterface):
 
     relevant_bits = bits[2:48]
     return PowerUps(*relevant_bits)
+
+  def set_mega_jump_cost(self, cost: int) -> None:
+    # Each gadget's ThiefNet entry (stride 0x3c) stores its gadget-meter
+    # (energy) cost at +0x04. Mega Jump is entry 24.
+    address = self.addresses["thiefnet start"] + 24*0x3c + 0x04
+    self._write32(address, cost)
 
   def activate_jobs(self, job_ids: int|list[int]):
     if isinstance(job_ids, int):
@@ -511,6 +515,27 @@ class Sly3Interface(GameInterface):
           self.logger.debug(f"MEMORY ERROR: {n_children} children")
           addresses += [children_list+4*i for i in range(n_children)]
 
+  def restore_episode6_resume(self) -> None:
+    map_addr = self.addresses["episode 6 resume map"]
+
+    if self.get_current_map() != 0 or self._read32(map_addr) != 0:
+      return
+
+    flags = self.addresses["job completed"]["Honor Among Thieves"][0]
+    completed = [s != 0 for s in self._batch_read32(flags)]
+
+    next_job = next((i for i, done in enumerate(completed) if not done), len(completed))
+
+    if next_job == 0 or next_job >= len(completed):
+      return
+
+    resume_id, resume_map = self.addresses["episode 6 resume"][next_job]
+    if resume_id is None or resume_map is None:
+      return
+
+    self._write32(self.addresses["episode 6 resume id"], resume_id)
+    self._write32(map_addr, resume_map)
+
   def intro_done(self) -> bool:
     return self._read32(self.addresses["intro complete"]) == 1
 
@@ -535,6 +560,49 @@ class Sly3Interface(GameInterface):
 
     if self.in_cutscene() and pressing_x:
       self._write32(self.addresses["skip cutscene"],0)
+
+  DIALOGUE_STUCK_TIMEOUT = 1.5
+
+  def _shoulder_buttons_held(self) -> bool:
+    values = self._batch_read8(self.addresses["shoulder buttons"])
+    return all(v == 255 for v in values)
+
+  def skip_dialogue(self) -> None:
+    # Ported from SlyMultiTrainer Sly3Handler
+    # Only skip while the player holds all four shoulder buttons.
+    if not self._shoulder_buttons_held():
+      self._dialogue_stuck_since = None
+      return
+
+    voiceover = self._read32(self.addresses["dialogue pointer"])
+    if voiceover == 0:
+      self._dialogue_stuck_since = None
+      return
+
+    if self._read32(voiceover + 0x1C) != 0:
+      return
+
+    string_id_address = self._read32(voiceover + 0x60) + 0x40
+    string_id = self._read32(string_id_address)
+    if string_id != 0xFFFFFFFF:
+      self._write32(string_id_address, 0xFFFFFFFF)
+      self._write8(voiceover + 0x5C, 8)
+      self._dialogue_stuck_since = None
+      return
+
+    # This part is for when it all breaks.
+    if self._dialogue_stuck_since is None:
+      self._dialogue_stuck_since = monotonic()
+      return
+
+    if monotonic() - self._dialogue_stuck_since > self.DIALOGUE_STUCK_TIMEOUT:
+      self.logger.debug("Dialogue stuck with no line playing; forcing exit")
+      self._force_exit_dialogue(voiceover)
+      self._dialogue_stuck_since = None
+
+  def _force_exit_dialogue(self, voiceover: int) -> None:
+    self._write8(voiceover + 0x5C, 8)
+    self._write32(self.addresses["dialogue pointer"], 0)
 
   def add_coins(self, to_add: int):
     current_amount = self._read32(self.addresses["coins"])
@@ -564,3 +632,30 @@ class Sly3Interface(GameInterface):
       return
 
     self._write32(self.addresses["reload"],1)
+
+def active_jobs_info(interf: Sly3Interface):
+  start = interf._read32(interf.addresses["DAG root"])
+  address = start
+  jobs = []
+  i = 0
+  while address != 0:
+    job_pointer = interf._read32(address+0x6c)
+    job_id = interf._read32(job_pointer+0x18)
+    if job_id not in jobs:
+      jobs.append(job_id)
+      print(f"{job_id}: {hex(address)} ({hex(address-start)}) ({i})")
+
+    address = interf._read32(address+0x20)
+    i += 1
+
+  mt_address = interf.addresses["map time"]
+  print(f"Map time: {interf._read32(mt_address)}")
+
+if __name__ == "__main__":
+  interf = Sly3Interface(Logger("test"))
+  interf.connect_to_game()
+  active_jobs_info(interf)
+  # address = interf.addresses["thiefnet start"]
+  # name_id = interf._read32(address+0x14)
+  # name_address = interf._find_string_address(name_id)
+  # interf.set_text(name_address, "&2abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&.")

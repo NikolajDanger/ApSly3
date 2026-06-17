@@ -5,4 +5,5 @@ build
 README.md
 LICENSE
 requirements.txt
+set_version.py
 Sly 3.yaml

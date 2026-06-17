@@ -4,6 +4,7 @@ from BaseClasses import Region, CollectionState
 
 from .data.Locations import location_dict
 from .data.Constants import EPISODES, CHALLENGES, REQUIREMENTS
+from .Sly3Rules import has_req
 
 if typing.TYPE_CHECKING:
   from . import Sly3World
@@ -28,7 +29,7 @@ def create_access_rule(episode: str, n: int, options: "Sly3Options", player: int
         in REQUIREMENTS["Jobs"][episode][:n-1]
       ]
       requirements = list(set(sum(section_requirements, [])))
-      access = access and all(state.has(i, player) for i in requirements)
+      access = access and all(has_req(state, i, player) for i in requirements)
 
     return access
 
@@ -56,7 +57,7 @@ def create_regions_sly3(world: "Sly3World"):
           for job in EPISODES[episode][n-1]
         })
         region.add_locations({
-          f"{episode} - {challenge}": location_dict[f"{episode} - {challenge}"].code
+          f"{episode} - {challenge} (MTC)": location_dict[f"{episode} - {challenge} (MTC)"].code
           for challenge in CHALLENGES[episode][n-1]
         })
 

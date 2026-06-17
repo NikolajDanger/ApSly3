@@ -8,6 +8,7 @@ You complete checks by completing jobs, master thief challenges, as well as purc
 
 **Additional features:**
 - The ability to skip video cutscenes by pressing the X button.
+- The ability to skip dialogue by holding down all four shoulder buttons (L1, L2, R1, R2).
 
 ## Setup
 

@@ -96,10 +96,29 @@ requires:
     'false': 0
     'true': 50
 
+  # Start with Bentley's double jump (one Progressive Hover Pack), rather than
+  # shuffling all three into the pool. This is the vanilla default.
+  start_with_double_jump:
+    'false': 0
+    'true': 50
+
   # Add the Mega Jump ability to the pool.
   include_mega_jump:
     'false': 50
     'true': 0
+
+  # The amount of gadget meter a single Mega Jump consumes. Vanilla is
+  # 34 (a full meter allows three jumps).
+  #
+  # You can define additional values between the minimum and maximum values.
+  # Minimum value is 0
+  # Maximum value is 100
+  mega_jump_energy_cost:
+    34: 50
+    random: 0
+    random-low: 0 # random value weighted towards lower values
+    random-high: 0 # random value weighted towards higher values
+    random-range-0-100: 0 # random value between 0 and 100
 
   # The minimum number of coins you'll receive when you get a "Coins" filler
   # item.

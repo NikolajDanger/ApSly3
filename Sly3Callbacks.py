@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Dict, List
-from time import time
+from collections import Counter
+from time import monotonic
 from random import randint
 import asyncio
 import re
@@ -45,58 +46,26 @@ def accessibility(ctx: "Sly3Context") -> Dict[int, bool]:
     for episode_name, episode in REQUIREMENTS["Jobs"].items()
   }
 
-  job_requirements["Honor Among Thieves"] = [[
-    [
-      "Bentley",
-      "Murray",
-      "Guru",
-      "Penelope",
-      "Panda King",
-      "Dimitri",
-      "Carmelita"
-    ]
-    for _ in range(8)
-  ]]
-
-  # challenge_requirements = {
-  #   episode_name: [
-  #     [
-  #       list(set(reqs + section_requirements[episode_name][section_idx]))
-  #       for reqs in section
-  #     ]
-  #     for section_idx, section in enumerate(episode)
-  #   ]
-  #   for episode_name, episode in REQUIREMENTS["Challenges"].items()
-  # }
-
-  # challenge_requirements["Honor Among Thieves"] = [[
-  #   [
-  #     "Bentley",
-  #     "Murray",
-  #     "Guru",
-  #     "Penelope",
-  #     "Panda King",
-  #     "Dimitri",
-  #     "Carmelita"
-  #   ]
-  #   for _ in range(5)
-  # ]]
-
   items_received = [
     Items.from_id(i.item)
     for i in ctx.items_received
   ]
 
-  progression_item_names = set([
+  progression_item_counts = Counter(
     i.name
     for i in items_received
     if i.classification == ItemClassification.progression
-  ])
+  )
+
+  def has_req(req) -> bool:
+    if isinstance(req, tuple):
+      return progression_item_counts[req[0]] >= req[1]
+    return progression_item_counts[req] >= 1
 
   job_accessibility = {
     episode_name: [
       [
-        all(r in progression_item_names for r in reqs)
+        all(has_req(r) for r in reqs)
         for reqs in section
       ]
       for section in episode
@@ -162,7 +131,7 @@ async def set_thiefnet(ctx: "Sly3Context"):
       "create_as_hint": 2
   }])
 
-  ctx.game_interface.set_powerups(ctx.thiefnet_purchases)
+  ctx.game_interface.set_powerups(ctx.thiefnet_purchases, ctx.hover_jumps, ctx.grapple_cam_weapon)
   thiefnet_data = [
     (ctx.slot_data["thiefnet_costs"][i], ctx.thiefnet_items[i])
     for i in range(thiefnet_n)
@@ -183,7 +152,7 @@ def check_challenges(ctx: "Sly3Context"):
 
 def set_powerups(ctx: "Sly3Context"):
   if not ctx.in_safehouse:
-    ctx.game_interface.set_powerups(ctx.powerups)
+    ctx.game_interface.set_powerups(ctx.powerups, ctx.hover_jumps, ctx.grapple_cam_weapon)
 
 async def unlock_episodes(ctx):
   await asyncio.sleep(1)
@@ -310,7 +279,7 @@ async def send_checks(ctx: "Sly3Context"):
     for chapter in episode:
       for challenge_name in chapter:
         if ctx.challenges_completed[i]:
-          location_name = f"{episode_name} - {challenge_name}"
+          location_name = f"{episode_name} - {challenge_name} (MTC)"
           location_code = Locations.location_dict[location_name].code
           ctx.locations_checked.add(location_code)
         i += 1
@@ -333,6 +302,8 @@ async def receive_items(ctx: "Sly3Context"):
 
   new_powerups = list(PowerUps(True))
   powerup_fields = PowerUps._fields
+  hover_pack_count = 0
+  grapple_cam_count = 0
 
   for i, network_item in enumerate(network_items):
     item = Items.from_id(network_item.item)
@@ -340,7 +311,6 @@ async def receive_items(ctx: "Sly3Context"):
 
     if i >= items_n:
       ctx.inventory[network_item.item] += 1
-      ctx.logger.debug(f"Received {item.name} from {player}")
       ctx.notification(f"Received {item.name} from {player}")
 
     if item.category == "Episode":
@@ -351,7 +321,13 @@ async def receive_items(ctx: "Sly3Context"):
       available_episodes[episode] = True
     elif item.category == "Power-Up":
       item_name = item.name.lower().replace(" ","_").replace("-","_").replace("(","").replace(")","")
-      if item_name == "progressive_shadow_power":
+      if item_name == "progressive_hover_pack":
+        hover_pack_count += 1
+        continue
+      elif item_name == "progressive_grapple_cam":
+        grapple_cam_count += 1
+        continue
+      elif item_name == "progressive_shadow_power":
         if new_powerups[30]:
           idx = 32
         else:
@@ -388,6 +364,13 @@ async def receive_items(ctx: "Sly3Context"):
       )
       ctx.game_interface.add_coins(amount)
 
+  ctx.hover_jumps = min(hover_pack_count, 3)
+  new_powerups[9] = hover_pack_count >= 3
+
+  new_powerups[11] = grapple_cam_count >= 1
+  ctx.grapple_cam_weapon = grapple_cam_count >= 2
+  ctx.powerups = PowerUps(*new_powerups)
+
   if ctx.current_episode != 0 and not ctx.in_safehouse:
     set_powerups(ctx)
 
@@ -395,8 +378,6 @@ async def receive_items(ctx: "Sly3Context"):
   if available_episodes != ctx.available_episodes:
     ctx.available_episodes = available_episodes
     await replace_text(ctx)
-
-  ctx.powerups = PowerUps(*new_powerups)
 
 
 async def check_goal(ctx: "Sly3Context"):
@@ -435,27 +416,29 @@ async def handle_job_markers(ctx: "Sly3Context", availability: Dict):
       else:
         inactive_jobs.append(job_id)
 
-  ctx.game_interface.complete_jobs(completed_jobs)
-  ctx.game_interface.activate_jobs(active_jobs)
-  ctx.game_interface.deactivate_jobs(inactive_jobs)
+  # ctx.game_interface.complete_jobs(completed_jobs)
+  # ctx.game_interface.activate_jobs(active_jobs)
+  # ctx.game_interface.deactivate_jobs(inactive_jobs)
 
 async def handle_notifications(ctx: "Sly3Context"):
-  if (
-    (ctx.showing_notification and time() - ctx.notification_timestamp < 10) or
-    (
-      (not ctx.showing_notification) and
-      ctx.game_interface.showing_infobox() and
-      ctx.game_interface.current_infobox() != 0xffffffff
-    ) or
-    ctx.game_interface.in_cutscene()
-  ):
+
+  if ctx.game_interface.in_cutscene():
     return
 
-  ctx.game_interface.disable_infobox()
-  ctx.showing_notification = False
-  if len(ctx.notification_queue) > 0 and ctx.game_interface.in_hub():
+  if ctx.showing_notification:
+    if monotonic() - ctx.notification_timestamp < 10:
+      return
+
+    ctx.game_interface.disable_infobox()
+    ctx.showing_notification = False
+
+  if (
+    not ctx.game_interface.showing_infobox() and
+    len(ctx.notification_queue) > 0 and
+    ctx.game_interface.in_hub()
+  ):
     new_notification = ctx.notification_queue.pop(0)
-    ctx.notification_timestamp = time()
+    ctx.notification_timestamp = monotonic()
     ctx.showing_notification = True
     ctx.game_interface.set_infobox(new_notification)
 
@@ -463,21 +446,21 @@ async def handle_deathlink(ctx: "Sly3Context"):
   if not ctx.death_link_enabled:
     return
 
-  if time()-ctx.deathlink_timestamp <= 20:
+  if monotonic()-ctx.deathlink_timestamp <= 20:
     return
 
   if ctx.game_interface.alive():
     if ctx.queued_deaths > 0:
       ctx.game_interface.kill_player()
       ctx.queued_deaths = 0
-      ctx.deathlink_timestamp = time()
+      ctx.deathlink_timestamp = monotonic()
   else:
     damage_type = ctx.game_interface.get_damage_type()
     player_name = ctx.player_names[ctx.slot if ctx.slot else 0]
     death_message = DEATH_TYPES.get(damage_type, "{player} died").format(player=player_name)
 
     await ctx.send_death(death_message)
-    ctx.deathlink_timestamp = time()
+    ctx.deathlink_timestamp = monotonic()
 
 ##################
 # Main Functions #
@@ -490,12 +473,15 @@ async def init(ctx: "Sly3Context") -> None:
 
   if ctx.current_map == 0:
     asyncio.create_task(unlock_episodes(ctx))
+    ctx.game_interface.restore_episode6_resume()
   elif ctx.game_interface.is_game_started() and ctx.in_hub:
     ctx.game_interface.fix_jobs()
 
   await replace_text(ctx)
 
   if ctx.game_interface.is_game_started():
+    if ctx.slot_data is not None:
+      ctx.game_interface.set_mega_jump_cost(ctx.slot_data["mega_jump_energy_cost"])
     await receive_items(ctx)
 
 async def update(ctx: "Sly3Context") -> None:

@@ -50,10 +50,10 @@ class Sly3CommandProcessor(ClientCommandProcessor): # type: ignore[misc]
     if isinstance(self.ctx, Sly3Context):
       self.ctx.game_interface._reload()
 
-  # def _cmd_coins(self, amount: str):
-  #   """Add coins to game."""
-  #   if isinstance(self.ctx, Sly3Context):
-  #     self.ctx.game_interface.add_coins(int(amount))
+  def _cmd_coins(self, amount: str):
+    """Add coins to game."""
+    if isinstance(self.ctx, Sly3Context):
+      self.ctx.game_interface.add_coins(int(amount))
 
   # def _cmd_notification(self, text: str):
   #   """Send a notification to the game."""
@@ -91,6 +91,8 @@ class Sly3Context(CommonContext): # type: ignore[misc]
   thiefnet_items: Optional[list[str]] = None
   powerups: PowerUps = PowerUps()
   thiefnet_purchases: PowerUps = PowerUps()
+  hover_jumps: int = 1
+  grapple_cam_weapon: bool = False
   jobs_completed: list[bool] = [
     False for episode in EPISODES.values()
     for chapter in episode
@@ -206,6 +208,16 @@ class Sly3Context(CommonContext): # type: ignore[misc]
     received_items = [Items.from_id(i.item) for i in self.items_received]
     progression_items = [i.name for i in received_items if i.classification == ItemClassification.progression]
 
+    def req_satisfied(req):
+      if isinstance(req, tuple):
+        return progression_items.count(req[0]) >= req[1]
+      return req in progression_items
+
+    def req_label(req):
+      if isinstance(req, tuple):
+        return f"{req[0]} x{req[1]}"
+      return req
+
     section_requirements = {
       episode_name: [
         list(set(sum([
@@ -215,7 +227,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
           )
           for ep_reqs
           in episode[:i-1]
-        ], [])))+[episode_name]
+        ], [])))+([episode_name] if episode_name != "Honor Among Thieves" else [])
         for i in range(1,5)
       ]
       for episode_name, episode in REQUIREMENTS["Jobs"].items()
@@ -227,7 +239,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
       for ep_name, ep in EPISODES.items() for chapter in ep for job in chapter
     ]
     job_requirements = [
-      [r for r in reqs+section_requirements[ep_name][chapter_idx] if r not in progression_items]
+      [req_label(r) for r in reqs+section_requirements[ep_name][chapter_idx] if not req_satisfied(r)]
       for ep_name, ep in REQUIREMENTS["Jobs"].items()
       for chapter_idx, chapter in enumerate(ep) for reqs in chapter
     ]
@@ -241,11 +253,11 @@ class Sly3Context(CommonContext): # type: ignore[misc]
 
     # Challenges
     challenges = [
-      f"{ep_name} - {challenge}"
+      f"{ep_name} - {challenge} (MTC)"
       for ep_name, ep in CHALLENGES.items() for chapter in ep for challenge in chapter
     ]
     challenge_requirements = [
-      sorted([r for r in list(set(reqs+section_requirements[ep_name][chapter_idx])) if r not in progression_items])
+      sorted([req_label(r) for r in set(reqs+section_requirements[ep_name][chapter_idx]) if not req_satisfied(r)])
       for ep_name, ep in REQUIREMENTS["Challenges"].items()
       for chapter_idx, chapter in enumerate(ep) for reqs in chapter
     ]
@@ -302,7 +314,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
       self.update_gui()
 
   def notification(self, text: str):
-    self.logger.debug("Notification:",text)
+    self.logger.debug(f"Notification: {text}")
     self.notification_queue.append(text)
 
 def update_connection_status(ctx: Sly3Context, status: bool):
@@ -329,6 +341,7 @@ async def _handle_game_ready(ctx: Sly3Context) -> None:
   ctx.current_episode = ctx.game_interface.get_current_episode()
 
   ctx.game_interface.skip_cutscene()
+  ctx.game_interface.skip_dialogue()
 
   if ctx.game_interface.is_loading():
     ctx.is_loading = True

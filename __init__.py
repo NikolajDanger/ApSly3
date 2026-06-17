@@ -104,6 +104,7 @@ class Sly3World(World):
           self.options.starting_episode.value = slot_data["starting_episode"]
           self.options.goal.value = slot_data["goal"]
           self.options.include_mega_jump.value = slot_data["include_mega_jump"]
+          self.options.mega_jump_energy_cost.value = slot_data["mega_jump_energy_cost"]
           self.options.coins_minimum.value = slot_data["coins_minimum"]
           self.options.coins_maximum.value = slot_data["coins_maximum"]
           self.options.thiefnet_locations.value = slot_data["thiefnet_locations"]
@@ -112,6 +113,7 @@ class Sly3World(World):
           self.options.bonus_crew_member.value = slot_data["bonus_crew_member"]
           self.options.start_with_binocucom.value = slot_data["start_with_binocucom"]
           self.options.start_with_bombs.value = slot_data["start_with_bombs"]
+          self.options.start_with_double_jump.value = slot_data["start_with_double_jump"]
           self.options.scout_thiefnet.value = slot_data["scout_thiefnet"]
       return
 
@@ -158,6 +160,7 @@ class Sly3World(World):
       "starting_episode",
       "goal",
       "include_mega_jump",
+      "mega_jump_energy_cost",
       "coins_minimum",
       "coins_maximum",
       "thiefnet_locations",
@@ -166,6 +169,7 @@ class Sly3World(World):
       "bonus_crew_member",
       "start_with_binocucom",
       "start_with_bombs",
+      "start_with_double_jump",
       "scout_thiefnet",
     )
 
