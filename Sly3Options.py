@@ -14,10 +14,13 @@ class StartingEpisode(Choice):
   """
   Select Which episode to start with.
 
-  Flight of Fancy and Dead Men Tell No Tales require items to do the first
-  jobs, meaning you'll only have ThiefNet locations in logic.
-  A Cold Alliance also requires items to have even ThiefNet in logic, so if you
-  start with that episode, you will start with no locations in logic.
+  Dead Men Tell No Tales requires items to do the first job, meaning you'll
+  only have ThiefNet locations in logic when starting there.
+  Flight of Fancy and A Cold Alliance also require items to have even ThiefNet
+  in logic, so if you start with one of those episodes without the required
+  items, you will start with no locations in logic.
+  Flight of Fancy only needs Bentley (the default bonus crew member), so this
+  is only a problem if you change the bonus crew member away from Bentley.
   """
 
   display_name = "Starting Episode"

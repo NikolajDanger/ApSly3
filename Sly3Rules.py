@@ -20,6 +20,13 @@ def make_thiefnet_rule(player: int, n: int):
   def new_rule(state: CollectionState):
     if (
       state.count_group("Episode", player) == 1 and
+      state.has("Flight of Fancy", player) and
+      not state.has("Bentley", player)
+    ):
+      return False
+
+    if (
+      state.count_group("Episode", player) == 1 and
       state.has("A Cold Alliance", player) and
       not all(
         state.has(item, player)
