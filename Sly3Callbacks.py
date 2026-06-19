@@ -192,11 +192,7 @@ async def replace_text(ctx: "Sly3Context"):
       if ctx.available_episodes[Sly3Episode(i)]:
         rep_text = ep_name
       elif i == 6:
-        obtained_crew = len([
-          i for i in ctx.items_received
-          if Items.from_id(i.item).category == "Crew"
-        ])
-        rep_text = f"{obtained_crew}/7 crew members"
+        rep_text = f"{ctx.crew_count}/7 crew members"
       else:
         rep_text = "Locked"
 
@@ -284,7 +280,11 @@ async def send_checks(ctx: "Sly3Context"):
           ctx.locations_checked.add(location_code)
         i += 1
 
-  await ctx.send_msgs([{"cmd": 'LocationChecks', "locations": ctx.locations_checked}])
+  # Only send location checks if there are new locations
+  new_locations = ctx.locations_checked - ctx.last_checked_locations
+  if new_locations:
+    await ctx.send_msgs([{"cmd": 'LocationChecks', "locations": ctx.locations_checked}])
+    ctx.last_checked_locations = ctx.locations_checked.copy()
 
 async def receive_items(ctx: "Sly3Context"):
   if ctx.slot_data is None:
@@ -292,13 +292,20 @@ async def receive_items(ctx: "Sly3Context"):
 
   items_n = ctx.game_interface.get_items_received()
 
+  notify_from = max(items_n, ctx.notified_items)
+
   network_items = ctx.items_received
+
+  # Update cached Crew count only when processing new items
+  if len(network_items) > notify_from:
+    ctx.crew_count = sum(
+      1 for i in network_items
+      if Items.from_id(i.item).category == "Crew"
+    )
+
   available_episodes = {e: False for e in Sly3Episode}
   available_episodes[Sly3Episode.Title_Screen] = True
-  available_episodes[Sly3Episode.Honor_Among_Thieves] = len([
-    i for i in network_items
-    if Items.from_id(i.item).category == "Crew"
-  ]) == 7
+  available_episodes[Sly3Episode.Honor_Among_Thieves] = ctx.crew_count == 7
 
   new_powerups = list(PowerUps(True))
   powerup_fields = PowerUps._fields
@@ -309,7 +316,7 @@ async def receive_items(ctx: "Sly3Context"):
     item = Items.from_id(network_item.item)
     player = ctx.player_names[network_item.player]
 
-    if i >= items_n:
+    if i >= notify_from:
       ctx.inventory[network_item.item] += 1
       ctx.notification(f"Received {item.name} from {player}")
 
@@ -357,7 +364,7 @@ async def receive_items(ctx: "Sly3Context"):
         idx = powerup_fields.index(item_name)
 
       new_powerups[idx] = True
-    elif item.name == "Coins" and i >= items_n:
+    elif item.name == "Coins" and i >= notify_from:
       amount = randint(
         ctx.slot_data["coins_minimum"],
         ctx.slot_data["coins_maximum"]
@@ -375,6 +382,7 @@ async def receive_items(ctx: "Sly3Context"):
     set_powerups(ctx)
 
   ctx.game_interface.set_items_received(len(network_items))
+  ctx.notified_items = len(network_items)
   if available_episodes != ctx.available_episodes:
     ctx.available_episodes = available_episodes
     await replace_text(ctx)
@@ -437,7 +445,7 @@ async def handle_notifications(ctx: "Sly3Context"):
     len(ctx.notification_queue) > 0 and
     ctx.game_interface.in_hub()
   ):
-    new_notification = ctx.notification_queue.pop(0)
+    new_notification = ctx.notification_queue.popleft()
     ctx.notification_timestamp = monotonic()
     ctx.showing_notification = True
     ctx.game_interface.set_infobox(new_notification)
@@ -495,7 +503,11 @@ async def update(ctx: "Sly3Context") -> None:
   if ctx.current_episode == Sly3Episode.Title_Screen and ctx.current_map == 35:
     ctx.game_interface.to_episode_menu()
 
-  availability = accessibility(ctx)
+  if (ctx.cached_job_availability is None
+      or len(ctx.items_received) != ctx.accessibility_items_n):
+    ctx.cached_job_availability = accessibility(ctx)
+    ctx.accessibility_items_n = len(ctx.items_received)
+  availability = ctx.cached_job_availability
   await kick_from_episode(ctx, availability)
 
   if not ctx.is_connected_to_server:

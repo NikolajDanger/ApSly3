@@ -1,4 +1,5 @@
 from typing import Optional, Dict
+from collections import deque
 import asyncio
 import multiprocessing
 import traceback
@@ -70,7 +71,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
   is_connected_to_server: bool = False
   slot_data: Optional[Dict[str, Utils.Any]] = None
   last_error_message: Optional[str] = None
-  notification_queue: list[str] = []
+  notification_queue: deque[str]
   notification_timestamp: float = 0
   showing_notification: bool = False
   deathlink_timestamp: float = 0
@@ -86,29 +87,41 @@ class Sly3Context(CommonContext): # type: ignore[misc]
   current_episode: Sly3Episode = Sly3Episode.Title_Screen
 
   # Items and checks
-  inventory: Dict[int,int] = {l.code: 0 for l in Items.item_dict.values()}
-  available_episodes: Dict[Sly3Episode,bool] = {e: False for e in Sly3Episode}
+  inventory: Dict[int,int]
+  available_episodes: Dict[Sly3Episode,bool]
   thiefnet_items: Optional[list[str]] = None
   powerups: PowerUps = PowerUps()
   thiefnet_purchases: PowerUps = PowerUps()
   hover_jumps: int = 1
   grapple_cam_weapon: bool = False
-  jobs_completed: list[bool] = [
-    False for episode in EPISODES.values()
-    for chapter in episode
-    for _ in chapter
-  ]
-  challenges_completed: list[bool] = [
-    False for episode in CHALLENGES.values()
-    for chapter in episode
-    for _ in chapter
-  ]
+  jobs_completed: list[bool]
+  challenges_completed: list[bool]
+  crew_count: int = 0  # Cached count to avoid repeated filtering
+  notified_items: int = 0  # Session high-water of items already notified
+  last_checked_locations: set[int]  # Track what was already sent
+  cached_job_availability: Optional[Dict[int, bool]] = None
+  accessibility_items_n: int = -1
 
   def __init__(self, server_address, password):
     super().__init__(server_address, password)
     self.version = [0,2,0]
     self.game_interface = Sly3Interface(logger)
+
+    self.notification_queue = deque(maxlen=200)
+    self.inventory = {l.code: 0 for l in Items.item_dict.values()}
+    self.available_episodes = {e: False for e in Sly3Episode}
     self.available_episodes[Sly3Episode.Title_Screen] = True
+    self.jobs_completed = [
+      False for episode in EPISODES.values()
+      for chapter in episode
+      for _ in chapter
+    ]
+    self.challenges_completed = [
+      False for episode in CHALLENGES.values()
+      for chapter in episode
+      for _ in chapter
+    ]
+    self.last_checked_locations = set()
     self.logger = logger
 
   def on_deathlink(self, data: Utils.Dict[str, Utils.Any]) -> None:
