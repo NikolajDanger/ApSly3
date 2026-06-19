@@ -432,7 +432,7 @@ class Sly3Interface(GameInterface):
   def activate_jobs(self, job_ids: int|list[int]):
     if isinstance(job_ids, int):
       job_ids = [job_ids]
-    # self.logger.debug(f"Activating jobs: {job_ids}")
+    self.logger.debug(f"Activating jobs: {job_ids}")
 
     memory_states = self.addresses["job states"]
     nodes = {j: n for j in job_ids if (n := self._job_node(j)) is not None}
@@ -440,14 +440,14 @@ class Sly3Interface(GameInterface):
     to_write = [j for j in nodes if self._job_parents_finished(nodes[j])]
     to_deactivate = list(set(job_ids) - set(to_write))
     self.deactivate_jobs(to_deactivate)
-    # self.logger.debug(f"To be activated: {to_write}")
+    self.logger.debug(f"To be activated: {to_write}")
     operations = [(nodes[j]+0x44,1) for j in to_write]+[(memory_states[j],1) for j in to_write]
     self._batch_write32(operations)
 
   def deactivate_jobs(self, job_ids: int|list[int]):
     if isinstance(job_ids, int):
       job_ids = [job_ids]
-    # self.logger.debug(f"Deactivating jobs: {job_ids}")
+    self.logger.debug(f"Deactivating jobs: {job_ids}")
 
     memory_states = self.addresses["job states"]
     nodes = {j: n for j in job_ids if (n := self._job_node(j)) is not None}
@@ -455,7 +455,7 @@ class Sly3Interface(GameInterface):
     job_list = list(nodes)
     statuses = self._batch_read32([nodes[j]+0x44 for j in job_list])
     to_write = [j for i,j in enumerate(job_list) if statuses[i] == 1]
-    # self.logger.debug(f"To be deactivated: {to_write}")
+    self.logger.debug(f"To be deactivated: {to_write}")
     operations = [(nodes[j]+0x44,0) for j in to_write]+[(memory_states[j],0) for j in to_write]
     self._batch_write32(operations)
 

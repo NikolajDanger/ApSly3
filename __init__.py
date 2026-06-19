@@ -1,7 +1,10 @@
 from typing import Dict, List, Any, Optional, Mapping
 import logging
+import inspect
+import os.path
 
 from BaseClasses import Item, ItemClassification
+from Options import OptionError
 from worlds.AutoWorld import World, WebWorld
 from worlds.LauncherComponents import (
   Component,
@@ -14,10 +17,14 @@ from worlds.LauncherComponents import (
 from .Sly3Options import sly3_option_groups, Sly3Options
 from .Sly3Regions import create_regions_sly3
 from .Sly3Pool import gen_pool_sly3
-from .Sly3Rules import set_rules_sly3
+from .Sly3Rules import (
+  set_rules_sly3,
+  THIEFNET_GATED_EPISODES,
+  THIEFNET_FREE_EPISODES,
+)
 from .data.Items import item_dict, item_groups, Sly3Item
 from .data.Locations import location_dict, location_groups
-from .data.Constants import EPISODES
+from .data.Constants import EPISODES, REQUIREMENTS
 
 ## Client stuff
 def run_client():
@@ -72,24 +79,112 @@ class Sly3World(World):
   # and this is how we tell Universal Tracker we don't need the yaml
   ut_can_gen_without_yaml = True
 
+  def starting_episode_viable(self, opt: Sly3Options, episode_index: int) -> bool:
+    episode = list(EPISODES.keys())[episode_index]
+    if self.multiworld.players != 1:
+      return True
+    starting_items = self.get_starting_items(opt)
+    def has_req(req) -> bool:
+      if isinstance(req, tuple):
+        return starting_items.get(req[0], 0) >= req[1]
+      return starting_items.get(req, 0) >= 1
+    first_job_doable = any(
+      all(has_req(req) for req in job_reqs)
+      for job_reqs in REQUIREMENTS["Jobs"][episode][0]
+    )
+    if episode in THIEFNET_FREE_EPISODES:
+      # ThiefNet is open at episode start. A doable first job anchors sphere 1
+      # on its own; without one (Dead Men Tell No Tales' first job needs an
+      # item), the start relies entirely on the ThiefNet fill bootstrap, which
+      # needs enough shops to seed generation reliably (see Sly3Rules). An Opera
+      # and Rumble always have a free first job, so they stay viable fallbacks.
+      if first_job_doable:
+        return True
+      return opt.thiefnet_locations.value >= 3
+    if episode in THIEFNET_GATED_EPISODES:
+      # ThiefNet only opens after the first job, so the first job has to be
+      # doable from the starting items for anything to be in logic.
+      return first_job_doable
+    return True
+
   def validate_options(self, opt: Sly3Options):
+    # The fuzzer should run with permissive yaml on so random-value yamls
+    # produce a representative sample instead of halting on OptionErrors.
+    if any(
+      frame.function == "call_generate"
+      and os.path.basename(frame.filename) == "fuzz.py"
+      for frame in inspect.stack()
+    ):
+      opt.permissive_yaml.value = True
+
     if opt.coins_maximum < opt.coins_minimum:
-        logging.warning(
-            f"{self.player_name}: " +
-            f"Coins minimum cannot be larger than maximum (min: {opt.coins_minimum}, max: {opt.coins_maximum}). Swapping values."
+      if not opt.permissive_yaml:
+        raise OptionError(
+          f"{self.player_name}: Coins minimum cannot be larger than maximum "
+          f"(min: {opt.coins_minimum}, max: {opt.coins_maximum})."
         )
-        temp = opt.coins_minimum.value
-        opt.coins_minimum.value = opt.coins_maximum.value
-        opt.coins_maximum.value = temp
+      logging.warning(
+        f"{self.player_name}: " +
+        f"Coins minimum cannot be larger than maximum (min: {opt.coins_minimum}, max: {opt.coins_maximum}). Swapping values."
+      )
+      temp = opt.coins_minimum.value
+      opt.coins_minimum.value = opt.coins_maximum.value
+      opt.coins_maximum.value = temp
 
     if opt.thiefnet_maximum < opt.thiefnet_minimum:
-        logging.warning(
-            f"{self.player_name}: " +
-            f"Thiefnet minimum cannot be larger than maximum (min: {opt.thiefnet_minimum}, max: {opt.thiefnet_maximum}). Swapping values."
+      if not opt.permissive_yaml:
+        raise OptionError(
+          f"{self.player_name}: Thiefnet minimum cannot be larger than maximum "
+          f"(min: {opt.thiefnet_minimum}, max: {opt.thiefnet_maximum})."
         )
-        temp = opt.thiefnet_minimum.value
-        opt.thiefnet_minimum.value = opt.thiefnet_maximum.value
-        opt.thiefnet_maximum.value = temp
+      logging.warning(
+        f"{self.player_name}: " +
+        f"Thiefnet minimum cannot be larger than maximum (min: {opt.thiefnet_minimum}, max: {opt.thiefnet_maximum}). Swapping values."
+      )
+      temp = opt.thiefnet_minimum.value
+      opt.thiefnet_minimum.value = opt.thiefnet_maximum.value
+      opt.thiefnet_maximum.value = temp
+
+    if not self.starting_episode_viable(opt, opt.starting_episode.value):
+      starting_episode = list(EPISODES.keys())[opt.starting_episode.value]
+      if not opt.permissive_yaml:
+        raise OptionError(
+          f"{self.player_name}: Starting in {starting_episode} as the only slot "
+          "leaves no locations in logic, because its first job requires items "
+          "you don't start with and no other slot can send them. Either change "
+          "your starting episode, add the required items via start_inventory, "
+          "or play in a multiworld with other slots."
+        )
+      new_index = self.random.choice([
+        i for i in range(len(EPISODES) - 1)
+        if self.starting_episode_viable(opt, i)
+      ])
+      opt.starting_episode.value = new_index
+      logging.warning(
+        f"{self.player_name}: " +
+        f"Starting in {starting_episode} as the only slot leaves no locations "
+        f"in logic. Changing starting episode to "
+        f"{list(EPISODES.keys())[new_index]}."
+      )
+
+  def get_starting_items(self, opt: Sly3Options) -> Dict[str, int]:
+    items: Dict[str, int] = {}
+    def add(name: str, count: int = 1) -> None:
+      items[name] = items.get(name, 0) + count
+    if opt.bonus_crew_member.value != 0:
+      # current_key is lowercased; crew item names are Title Case.
+      add(opt.bonus_crew_member.current_key.replace("_", " ").title())
+    if opt.start_with_binocucom:
+      add("Binocucom")
+    if opt.start_with_bombs:
+      add("Bombs")
+    if opt.start_with_double_jump:
+      add("Progressive Hover Pack")
+    for name, count in opt.start_inventory.value.items():
+      add(name, count)
+    for name, count in opt.start_inventory_from_pool.value.items():
+      add(name, count)
+    return items
 
   def generate_early(self) -> None:
     # implement .yaml-less Universal Tracker support
@@ -115,6 +210,7 @@ class Sly3World(World):
           self.options.start_with_bombs.value = slot_data["start_with_bombs"]
           self.options.start_with_double_jump.value = slot_data["start_with_double_jump"]
           self.options.scout_thiefnet.value = slot_data["scout_thiefnet"]
+          self.options.permissive_yaml.value = slot_data["permissive_yaml"]
       return
 
     self.validate_options(self.options)
@@ -171,6 +267,7 @@ class Sly3World(World):
       "start_with_bombs",
       "start_with_double_jump",
       "scout_thiefnet",
+      "permissive_yaml",
     )
 
   def fill_slot_data(self) -> Mapping[str, Any]:

@@ -17,7 +17,7 @@ filler_list = [
   ("Coins",                     ItemClassification.filler,      "Filler"),
 ]
 
-powerup_list = [
+sly_powerups = [
   ("Binocucom",                 ItemClassification.progression, "Power-Up"),
   ("Smoke Bomb",                ItemClassification.useful,      "Power-Up"),
   ("Knockout Dive",             ItemClassification.useful,      "Power-Up"),
@@ -36,7 +36,9 @@ powerup_list = [
   ("Progressive Jump Attack",   ItemClassification.useful,      "Power-Up"),
   ("Progressive Push Attack",   ItemClassification.useful,      "Power-Up"),
   ("Mega Jump",                 ItemClassification.useful,      "Power-Up"),
+]
 
+bentley_powerups = [
   ("Bombs",                     ItemClassification.progression, "Power-Up"),
   ("Trigger Bomb",              ItemClassification.useful,      "Power-Up"),
   ("Fishing Pole",              ItemClassification.progression, "Power-Up"),
@@ -49,7 +51,9 @@ powerup_list = [
   ("Rage Bomb",                 ItemClassification.useful,      "Power-Up"),
   ("Reduction Bomb",            ItemClassification.useful,      "Power-Up"),
   ("Progressive Hover Pack",    ItemClassification.progression, "Power-Up"),
+]
 
+murray_powerups = [
   ("Ball Form",                 ItemClassification.progression, "Power-Up"),
   ("Berserker Charge",          ItemClassification.useful,      "Power-Up"),
   ("Juggernaut Throw",          ItemClassification.useful,      "Power-Up"),
@@ -59,6 +63,8 @@ powerup_list = [
   ("Raging Inferno Flop",       ItemClassification.useful,      "Power-Up"),
   ("Diablo Fire Slam",          ItemClassification.useful,      "Power-Up")
 ]
+
+powerup_list = sly_powerups + bentley_powerups + murray_powerups
 
 crew_list = [
   ("Bentley",                   ItemClassification.progression, "Crew"),
@@ -98,6 +104,17 @@ item_groups = {
     "Crew"
   ]
 }
+
+item_groups.update({
+  "Episodes":          item_groups["Episode"],
+  "Gadgets":           item_groups["Power-Up"],
+  "Sly's Gadgets":     {name for name, _, _ in sly_powerups},
+  "Bentley's Gadgets": {name for name, _, _ in bentley_powerups},
+  "Murray's Gadgets":  {name for name, _, _ in murray_powerups},
+  "Disguises": {n for n in item_groups["Power-Up"] if n.startswith("Disguise")},
+  "Attacks":   {n for n in item_groups["Power-Up"] if "Attack" in n}
+               | {"Mega Jump"},
+})
 
 def from_id(item_id: int) -> Sly3ItemData:
   matching = [item for item in item_dict.values() if item.code == item_id]

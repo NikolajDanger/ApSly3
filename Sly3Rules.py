@@ -2,7 +2,7 @@ import typing
 
 from BaseClasses import CollectionState
 
-from worlds.generic.Rules import add_rule, add_item_rule
+from worlds.generic.Rules import add_rule
 from .data.Constants import EPISODES, CHALLENGES, REQUIREMENTS
 from .data.Locations import location_dict
 
@@ -16,31 +16,37 @@ def has_req(state: CollectionState, req, player: int) -> bool:
     return state.has(req[0], player, req[1])
   return state.has(req, player)
 
-def make_thiefnet_rule(player: int, n: int):
+
+THIEFNET_FREE_EPISODES = (
+  "An Opera of Fear",
+  "Rumble Down Under",
+  "Dead Men Tell No Tales",
+)
+THIEFNET_GATED_EPISODES = ("Flight of Fancy", "A Cold Alliance")
+
+def thiefnet_accessible(state: CollectionState, player: int) -> bool:
+  """Whether the player can open ThiefNet in-game at all."""
+  if any(state.has(ep, player) for ep in THIEFNET_FREE_EPISODES):
+    return True
+  return any(
+    state.has(ep, player) and
+    all(has_req(state, req, player) for req in REQUIREMENTS["Jobs"][ep][0][0])
+    for ep in THIEFNET_GATED_EPISODES
+  )
+
+def make_thiefnet_rule(non_shop_locations, required: int, player: int):
   def new_rule(state: CollectionState):
-    if (
-      state.count_group("Episode", player) == 1 and
-      state.has("Flight of Fancy", player) and
-      not state.has("Bentley", player)
-    ):
+    if not thiefnet_accessible(state, player):
       return False
-
-    if (
-      state.count_group("Episode", player) == 1 and
-      state.has("A Cold Alliance", player) and
-      not all(
-        state.has(item, player)
-        for item in ["Bentley", "Murray", "Guru", "Penelope", "Binocucom"]
-      )
-    ):
-      return False
-
-    progression_items = (
-      state.count_group("Episode", player) +
-      state.count_group("Crew", player)
-    )
-
-    return progression_items >= n
+    if required <= 0:
+      return True
+    count = 0
+    for loc in non_shop_locations:
+      if loc.can_reach(state):
+        count += 1
+        if count >= required:
+          return True
+    return False
 
   return new_rule
 
@@ -48,44 +54,48 @@ def set_rules_sly3(world: "Sly3World"):
   player = world.player
   thiefnet_items = world.options.thiefnet_locations.value
 
-  # Putting ThiefNet stuff out of logic, to make early game less slow.
-  if not hasattr(world.multiworld, "generation_is_fake") and thiefnet_items > 0: # (unless tracking)
-    FLOOR = 6
-    if world.options.starting_episode.value > 1:
-      FLOOR = 1
-    CEILING = 10
-
-    span = max(thiefnet_items - 1, 1)
-
-    for i in range(1, thiefnet_items + 1):
-      location = world.get_location(f"ThiefNet {i:02}")
-
-      required = FLOOR + round((i - 1) / span * (CEILING - FLOOR))
-      add_rule(location, make_thiefnet_rule(player, required))
+  non_shop_locations = []
 
   ### Job requirements
   for episode, sections in EPISODES.items():
     for i, s in enumerate(sections):
       for j, job in enumerate(s):
         reqs = REQUIREMENTS["Jobs"][episode][i][j]
+        location = world.get_location(f"{episode} - {job}")
         add_rule(
-          world.get_location(f"{episode} - {job}"),
+          location,
           lambda state, items=reqs: (
             all(has_req(state, item, player) for item in items)
           )
         )
+        non_shop_locations.append(location)
 
   ### Challenge requirements
   for episode, sections in CHALLENGES.items():
     for i, s in enumerate(sections):
       for j, challenge in enumerate(s):
         reqs = REQUIREMENTS["Challenges"][episode][i][j]
+        location = world.get_location(f"{episode} - {challenge} (MTC)")
         add_rule(
-          world.get_location(f"{episode} - {challenge} (MTC)"),
+          location,
           lambda state, items=reqs: (
             all(has_req(state, item, player) for item in items)
           )
         )
+        non_shop_locations.append(location)
+
+  if not hasattr(world.multiworld, "generation_is_fake") and thiefnet_items > 0: # (unless tracking)
+    start_state = CollectionState(world.multiworld)
+    needs_bootstrap = thiefnet_accessible(start_state, player)
+    BOOTSTRAP = min(3, thiefnet_items) if needs_bootstrap else 0
+    CEILING = 40
+    span = max(thiefnet_items - BOOTSTRAP, 1)
+
+    for i in range(1, thiefnet_items + 1):
+      location = world.get_location(f"ThiefNet {i:02}")
+
+      required = round((i - BOOTSTRAP) / span * CEILING) if i > BOOTSTRAP else 0
+      add_rule(location, make_thiefnet_rule(non_shop_locations, required, player))
 
   if world.options.goal.value < 6:
     victory_condition = [

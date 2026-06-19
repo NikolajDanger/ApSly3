@@ -386,6 +386,9 @@ async def check_goal(ctx: "Sly3Context"):
     await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
 
 async def handle_job_markers(ctx: "Sly3Context", availability: Dict):
+  if ctx.current_job != 0xffffffff:
+    return
+
   episode = ctx.current_episode.name.replace("_"," ")
   all_ids = [j for e in JOB_IDS.values() for c in e for j in c]
 

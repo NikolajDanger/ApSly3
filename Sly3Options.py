@@ -169,6 +169,18 @@ class ScoutThiefnet(DefaultOnToggle):
 
     display_name = "Scout Thiefnet"
 
+class PermissiveYaml(Toggle):
+  """
+  If permissive yaml is on, incompatible yaml options will be changed to more
+  suitable ones. If turned off, these yaml options will throw an error and
+  cause generation to halt.
+
+  This is intended for yamls with random values. If you're not randomizing
+  any options, it's recommended that you turn permissive yaml off.
+  """
+
+  display_name = "Permissive Yaml"
+
 @dataclass
 class Sly3Options(PerGameCommonOptions):
   start_inventory_from_pool: StartInventoryPool
@@ -187,8 +199,12 @@ class Sly3Options(PerGameCommonOptions):
   start_with_bombs: StartWithBombs
   start_with_double_jump: StartWithDoubleJump
   scout_thiefnet: ScoutThiefnet
+  permissive_yaml: PermissiveYaml
 
 sly3_option_groups = [
+  OptionGroup("General",[
+    PermissiveYaml
+  ]),
   OptionGroup("Goal",[
     Goal
   ]),

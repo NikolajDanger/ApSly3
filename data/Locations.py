@@ -44,6 +44,18 @@ location_groups = {
   ]
 }
 
+location_groups.update({
+  "Jobs":       location_groups["Job"],
+  "Challenges": location_groups["Challenge"],
+  "ThiefNet":   location_groups["Purchase"],
+  "Operations": {n for n in location_groups["Job"] if "Operation:" in n},
+})
+for ep in EPISODES:
+  location_groups[ep] = {
+    loc.name for loc in location_dict.values()
+    if loc.name.startswith(f"{ep} - ")
+  }
+
 def from_id(location_id: int) -> Sly3LocationData:
   matching = [location for location in location_dict.values() if location.code == location_id]
   if len(matching) == 0:
