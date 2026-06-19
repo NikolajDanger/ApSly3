@@ -284,8 +284,7 @@ async def receive_items(ctx: "Sly3Context"):
 
   network_items = ctx.items_received
 
-  # Update cached Crew count only when processing new items
-  if len(network_items) > notify_from:
+  if len(network_items) != ctx.notified_items:
     ctx.crew_count = sum(
       1 for i in network_items
       if Items.from_id(i.item).category == "Crew"
@@ -473,12 +472,12 @@ async def init(ctx: "Sly3Context") -> None:
   elif ctx.game_interface.is_game_started() and ctx.in_hub:
     ctx.game_interface.fix_jobs()
 
-  await replace_text(ctx)
-
   if ctx.game_interface.is_game_started():
     if ctx.slot_data is not None:
       ctx.game_interface.set_mega_jump_cost(ctx.slot_data["mega_jump_energy_cost"])
     await receive_items(ctx)
+
+  await replace_text(ctx)
 
 async def update(ctx: "Sly3Context") -> None:
   """Called continuously"""
