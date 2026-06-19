@@ -73,18 +73,6 @@ def accessibility(ctx: "Sly3Context") -> Dict[int, bool]:
     for episode_name, episode in job_requirements.items()
   }
 
-  # challenge_accessibility = {
-  #   episode_name: [
-  #     [
-  #       all(r in progression_item_names for r in reqs)
-  #       for reqs in section
-  #     ]
-  #     for section in episode
-  #   ]
-  #   for episode_name, episode in challenge_requirements.items()
-  # }
-
-  # I don't think we need to also do challenges
   return {
     JOB_IDS[ep][i][j]: avail
     for ep, ep_avail in job_accessibility.items()
@@ -424,9 +412,9 @@ async def handle_job_markers(ctx: "Sly3Context", availability: Dict):
       else:
         inactive_jobs.append(job_id)
 
-  # ctx.game_interface.complete_jobs(completed_jobs)
-  # ctx.game_interface.activate_jobs(active_jobs)
-  # ctx.game_interface.deactivate_jobs(inactive_jobs)
+  ctx.game_interface.complete_jobs(completed_jobs)
+  ctx.game_interface.activate_jobs(active_jobs)
+  ctx.game_interface.deactivate_jobs(inactive_jobs)
 
 async def handle_notifications(ctx: "Sly3Context"):
 

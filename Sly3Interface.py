@@ -6,8 +6,15 @@ import traceback
 from time import sleep, monotonic
 
 from .pcsx2_interface.pine import Pine
-from .data.Constants import ADDRESSES, MENU_RETURN_DATA, POWER_UP_TEXT, JOB_IDS, EPISODES, CHALLENGES
+from .data.Constants import ADDRESSES, MENU_RETURN_DATA, POWER_UP_TEXT, JOB_IDS, JOB_MARKERS, EPISODES, CHALLENGES
 from .data.Locations import location_dict
+
+JOB_EPISODE = {
+  job: episode
+  for episode, chapters in JOB_IDS.items()
+  for chapter in chapters
+  for job in chapter
+}
 
 class Sly3Episode(IntEnum):
   Title_Screen = 0
@@ -177,6 +184,12 @@ class GameInterface():
       return False
 
 class Sly3Interface(GameInterface):
+  # DAG node walking. The DAG is heap-allocated per load, so node addresses
+  # are not static; we resolve them by walking the linked list from the root
+  # pointer. Cache the walked list keyed by the root, invalidated on reload.
+  _dag_root: int = 0
+  _dag_node_cache: list[int] = []
+
   ############################
   ## Private Helper Methods ##
   ############################
@@ -200,9 +213,41 @@ class Sly3Interface(GameInterface):
         return self._read32(string_table_address+i*8+4)
       i += 1
 
-  def _get_task_parents(self, job: int) -> list[int]:
-    self.logger.debug(f"Getting parents for job {job}")
-    address = self.addresses["job markers"][job]
+  def _dag_nodes(self) -> list[int]:
+    root = self._read32(self.addresses["DAG root"])
+    if root == self._dag_root and self._dag_node_cache:
+      return self._dag_node_cache
+
+    nodes = []
+    node = root
+    while 0x80000 < node < 0x2000000:
+      nodes.append(node)
+      # Next Node lives at +0x20 in the DAG node struct.
+      node = self._read32(node+0x20)
+
+    self._dag_root = root
+    self._dag_node_cache = nodes
+    return nodes
+
+  def _job_node(self, job: int) -> Optional[int]:
+    index = JOB_MARKERS.get(job)
+    if index is None:
+      return None
+
+    episode = self.get_current_episode().name.replace("_", " ")
+    if JOB_EPISODE.get(job) != episode:
+      self.logger.debug(
+        f"Refusing to resolve job {job} outside its episode (in {episode})")
+      return None
+
+    nodes = self._dag_nodes()
+    if index >= len(nodes):
+      self.logger.debug(f"Job {job} index {index} outside DAG ({len(nodes)})")
+      return None
+
+    return nodes[index]
+
+  def _get_task_parents(self, address: int) -> list[int]:
     parents_n = self._read32(address+0x84)
     parents_list = self._read32(address+0x88)
     if parents_n > 10:
@@ -212,8 +257,8 @@ class Sly3Interface(GameInterface):
       parent_pointers = [parents_list+4*i for i in range(parents_n)]
       return self._batch_read32(parent_pointers)
 
-  def _job_parents_finished(self, job: int) -> bool:
-    parents = self._get_task_parents(job)
+  def _job_parents_finished(self, address: int) -> bool:
+    parents = self._get_task_parents(address)
     return all([
       s == 3 for s in self._batch_read32([p+0x44 for p in parents])
     ])
@@ -387,64 +432,44 @@ class Sly3Interface(GameInterface):
   def activate_jobs(self, job_ids: int|list[int]):
     if isinstance(job_ids, int):
       job_ids = [job_ids]
-    self.logger.debug(f"Activating jobs: {job_ids}")
+    # self.logger.debug(f"Activating jobs: {job_ids}")
 
-    markers = self.addresses["job markers"]
     memory_states = self.addresses["job states"]
-    to_read = []
-    for job in job_ids:
-      if job not in markers:
-        self.logger.debug(f"Job {job} not able to be activated")
-        continue
+    nodes = {j: n for j in job_ids if (n := self._job_node(j)) is not None}
 
-      to_read.append(job)
-
-    # statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
-    to_write = [j for i,j in enumerate(to_read) if self._job_parents_finished(j)]
+    to_write = [j for j in nodes if self._job_parents_finished(nodes[j])]
     to_deactivate = list(set(job_ids) - set(to_write))
     self.deactivate_jobs(to_deactivate)
-    self.logger.debug(f"To be activated: {to_write}")
-    operations = [(markers[j]+0x44,1) for j in to_write]+[(memory_states[j],1) for j in to_write]
+    # self.logger.debug(f"To be activated: {to_write}")
+    operations = [(nodes[j]+0x44,1) for j in to_write]+[(memory_states[j],1) for j in to_write]
     self._batch_write32(operations)
 
   def deactivate_jobs(self, job_ids: int|list[int]):
     if isinstance(job_ids, int):
       job_ids = [job_ids]
-    self.logger.debug(f"Deactivating jobs: {job_ids}")
+    # self.logger.debug(f"Deactivating jobs: {job_ids}")
 
-    markers = self.addresses["job markers"]
     memory_states = self.addresses["job states"]
-    to_read = []
-    for job in job_ids:
-      if job not in markers:
-        self.logger.debug(f"Job {job} not able to be deactivated")
-        continue
+    nodes = {j: n for j in job_ids if (n := self._job_node(j)) is not None}
 
-      to_read.append(job)
-
-    statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
-    to_write = [j for i,j in enumerate(to_read) if statuses[i] == 1]
-    self.logger.debug(f"To be deactivated: {to_write}")
-    operations = [(markers[j]+0x44,0) for j in to_write]+[(memory_states[j],0) for j in to_write]
+    job_list = list(nodes)
+    statuses = self._batch_read32([nodes[j]+0x44 for j in job_list])
+    to_write = [j for i,j in enumerate(job_list) if statuses[i] == 1]
+    # self.logger.debug(f"To be deactivated: {to_write}")
+    operations = [(nodes[j]+0x44,0) for j in to_write]+[(memory_states[j],0) for j in to_write]
     self._batch_write32(operations)
 
   def complete_jobs(self, job_ids: int|list[int]):
     if isinstance(job_ids, int):
       job_ids = [job_ids]
 
-    markers = self.addresses["job markers"]
     memory_states = self.addresses["job states"]
-    to_read = []
-    for job in job_ids:
-      if job not in markers:
-        self.logger.debug(f"Job {job} not able to be completed")
-        continue
+    nodes = {j: n for j in job_ids if (n := self._job_node(j)) is not None}
 
-      to_read.append(job)
-
-    statuses = self._batch_read32([markers[j]+0x44 for j in to_read])
-    to_write = [j for i,j in enumerate(to_read) if statuses[i] != 3]
-    operations = [(markers[j]+0x44,3) for j in to_write]+[(memory_states[j],3) for j in to_write]
+    job_list = list(nodes)
+    statuses = self._batch_read32([nodes[j]+0x44 for j in job_list])
+    to_write = [j for i,j in enumerate(job_list) if statuses[i] != 3]
+    operations = [(nodes[j]+0x44,3) for j in to_write]+[(memory_states[j],3) for j in to_write]
     self._batch_write32(operations)
 
   def jobs_completed(self) -> list[bool]:
@@ -487,13 +512,14 @@ class Sly3Interface(GameInterface):
         for job in chapter
       ]
 
-    markers = [self.addresses["job markers"][j]+0x44 for j in job_ids if j in self.addresses["job markers"]]
-    statuses = self._batch_read32(markers)
-    messed_up_jobs = [job_ids[i] for i,s in enumerate(statuses) if s == 2]
+    nodes = {j: n for j in job_ids if (n := self._job_node(j)) is not None}
+    job_list = list(nodes)
+    statuses = self._batch_read32([nodes[j]+0x44 for j in job_list])
+    messed_up_jobs = [job_list[i] for i,s in enumerate(statuses) if s == 2]
 
     for job in messed_up_jobs:
       self.logger.info(f"Fixing job {job}")
-      job_address = self.addresses["job markers"][job]
+      job_address = nodes[job]
       mission = self._read32(job_address+0x6c)
 
       addresses = [job_address]
