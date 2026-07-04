@@ -352,7 +352,7 @@ REQUIREMENTS = {
         ["Murray", "Penelope"],
         ["Murray", "Penelope"],
         ["Murray", "Penelope"],
-        ["Murray", "Guru", "Fishing Pole", "Penelope"],
+        ["Murray", "Guru", "Fishing Pole", "Ball Form", "Penelope"],
       ],
       [
         ["Binocucom"],
