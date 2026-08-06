@@ -1,9 +1,10 @@
-.git*
 __pycache__
-.vscode
+.*
 build
-README.md
+*.md
+set_version
 LICENSE
 requirements.txt
-set_version.py
 Sly 3.yaml
+Sly_Addresses.xlsx
+savefile_data.txt
