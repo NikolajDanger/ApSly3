@@ -104,7 +104,7 @@ class Sly3Context(CommonContext): # type: ignore[misc]
 
   def __init__(self, server_address, password):
     super().__init__(server_address, password)
-    self.version = [0,2,0]
+    self.version = [0,3,0]
     self.game_interface = Sly3Interface(logger)
 
     self.notification_queue = deque(maxlen=200)
